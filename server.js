@@ -20,6 +20,7 @@ db.once("open", function () {
   const taskRoute = require("./routes/taskRoutes");
   const groupRoute = require("./routes/groupRoutes");
   const boardRoute = require("./routes/boardRoutes");
+  const userRoute = require("./routes/userRoutes");
 
   const app = express();
   app.use(cookieParser());
@@ -54,6 +55,7 @@ db.once("open", function () {
   app.use("/task", taskRoute);
   app.use("/group", groupRoute);
   app.use("/board", boardRoute);
+  app.use("/user", userRoute);
 
   app.listen(process.env.PORT, () => {
     console.log(
