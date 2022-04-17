@@ -7,6 +7,10 @@ const TaskSchema = mongoose.Schema(
       required: [true, "The task is required."],
       trim: true,
     },
+    day: {
+      type: Number,
+      required: true,
+    },
   },
   {
     timestamps: true,
