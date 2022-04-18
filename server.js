@@ -46,6 +46,7 @@ function expressServerApp() {
 
   const app = express();
   app.use(cookieParser());
+  const whitelist = [`${process.env.BASE_URL_FRONT_END}`];
   const corsOptions = {
     origin: function (origin, callback) {
       if (!origin || whitelist.indexOf(origin) !== -1) {
