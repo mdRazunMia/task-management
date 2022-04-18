@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const GroupSchema = mongoose.Schema(
   {
-    group_name: {
+    group_title: {
       type: String,
       required: [true, "Group name is required."],
       trim: true,
