@@ -1,7 +1,20 @@
 const Group = require("../models/groupModel");
 
 const createGroup = async (req, res) => {
-  const group = new Group(req.body);
+  const groupObject = {
+    group_title: req.body.group_title,
+    nested: req.body.nested,
+  };
+  var superGroup;
+  if (req.body.nested == true) {
+    superGroup = {
+      super_group_id: req.body.super_group_id,
+      super_group_title: req.body.super_group_title,
+    };
+    groupObject.super_group = superGroup;
+  }
+
+  const group = new Group(groupObject);
   const saveGroup = await group.save();
   if (!saveGroup) {
     res

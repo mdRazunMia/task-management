@@ -37,7 +37,6 @@ function expressServerApp() {
   const groupRoute = require("./routes/groupRoutes");
   const boardRoute = require("./routes/boardRoutes");
   const userRoute = require("./routes/userRoutes");
-  const columnRoute = require("./routes/columnRoutes");
   const googleLoginRoute = require("./routes/googleLoginRoute");
   const linkedinLoginRoute = require("./routes/linkedinRoute");
 
@@ -108,7 +107,6 @@ function expressServerApp() {
 
   //routes
   app.use("/task", taskRoute);
-  app.use("/column", columnRoute);
   app.use("/group", groupRoute);
   app.use("/board", boardRoute);
   app.use("/user", userRoute);

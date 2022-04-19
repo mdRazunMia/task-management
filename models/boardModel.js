@@ -7,14 +7,30 @@ const boardSchema = mongoose.Schema(
       required: [true, "Board name is required."],
       trim: true,
     },
-    column_order: {
-      type: Array,
-      default: [],
-    },
-    _destroy: {
+    nested: {
       type: Boolean,
       default: false,
     },
+    super_board: {
+      super_board_id: {
+        type: String,
+        default: null,
+      },
+      super_board_title: {
+        type: String,
+        default: null,
+      },
+    },
+    task_list: [
+      {
+        task_id: {
+          type: String,
+        },
+        task_title: {
+          type: String,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

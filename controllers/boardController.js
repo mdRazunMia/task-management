@@ -1,7 +1,26 @@
 const Board = require("../models/boardModel");
 
 const createBoard = async (req, res) => {
-  const board = new Board(req.body);
+  var list = [];
+  list.push({
+    task_id: "12345",
+    task_title: "Do some random stuff",
+  });
+  const boardObject = {
+    board_title: req.body.board_title,
+    nested: req.body.nested,
+    task_list: list,
+  };
+  var superBoard;
+  if (req.body.nested == true) {
+    superBoard = {
+      super_board_id: req.body.super_board_id,
+      super_board_title: req.body.super_board_title,
+    };
+    boardObject.super_board = superBoard;
+  }
+
+  const board = new Board(boardObject);
   try {
     const saveBoard = await board.save();
     if (!saveBoard) {
