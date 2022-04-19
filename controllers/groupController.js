@@ -25,6 +25,30 @@ const createGroup = async (req, res) => {
     res.status(201).send({ message: "Group has been created successfully." });
   }
 };
+
+const addTaskToGroup = async (req, res) => {
+  const group_id = req.params.id;
+  const existingGroup = await Group.findById(group_id);
+  const taskObject = {
+    group_task_id: req.body.group_task_id,
+    group_task_title: req.body.group_task_title,
+  };
+  if (!existingGroup) {
+    res.status(404).send({ errorMessage: "Group is not found." });
+  } else {
+    const updatedGroup = await Group.findOneAndUpdate(group_id, {
+      $push: { group_task: taskObject },
+    });
+    if (!updatedGroup) {
+      res
+        .status(500)
+        .send({ errorMessage: "Task does not added to the group." });
+    } else {
+      res.status(200).send({ message: "Task has been added to the group." });
+    }
+  }
+};
+
 const getGroups = async (req, res) => {
   try {
     const groupList = await Group.find({});
@@ -97,4 +121,5 @@ module.exports = {
   getSingleGroup,
   editGroup,
   deleteGroup,
+  addTaskToGroup,
 };
