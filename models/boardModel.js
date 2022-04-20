@@ -11,16 +11,24 @@ const boardSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    super_board: {
-      super_board_id: {
-        type: String,
-        default: null,
+    board_column: [
+      {
+        board_column_title: {
+          type: String,
+          default: null,
+        },
+        board_column_task_list: [
+          {
+            task_id: {
+              type: String,
+            },
+            task_title: {
+              type: String,
+            },
+          },
+        ],
       },
-      super_board_title: {
-        type: String,
-        default: null,
-      },
-    },
+    ],
     task_list: [
       {
         task_id: {
