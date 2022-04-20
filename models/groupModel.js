@@ -7,13 +7,13 @@ const GroupSchema = mongoose.Schema(
       required: [true, "Group name is required."],
       trim: true,
     },
-    group_task: [
+    group_task_list: [
       {
-        group_task_id: {
+        task_id: {
           type: String,
           default: null,
         },
-        group_task_title: {
+        task_title: {
           type: String,
           default: null,
         },
@@ -33,6 +33,16 @@ const GroupSchema = mongoose.Schema(
         trim: true,
         default: null,
       },
+      super_group_task_list: [
+        {
+          task_id: {
+            type: String,
+          },
+          task_title: {
+            type: String,
+          },
+        },
+      ],
     },
   },
   {

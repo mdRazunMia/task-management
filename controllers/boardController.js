@@ -1,12 +1,6 @@
 const Board = require("../models/boardModel");
 
 const createBoard = async (req, res) => {
-  // var list = [];
-  // list.push({
-  //   task_id: ,
-  //   task_title: "Do some random stuff",
-  // });
-  console.log(req.body);
   const boardObject = {
     board_title: req.body.board_title,
     nested: req.body.nested,

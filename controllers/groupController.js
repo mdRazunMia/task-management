@@ -1,4 +1,5 @@
 const Group = require("../models/groupModel");
+const Task = require("../models/taskModel");
 
 const createGroup = async (req, res) => {
   const groupObject = {
@@ -7,9 +8,17 @@ const createGroup = async (req, res) => {
   };
   var superGroup;
   if (req.body.nested == true) {
+    //have to start from here
+    let super_group_task_list = [];
+    const super_group_id = req.body.super_group_id;
+    super_group_all_task = await Group.find({
+      "super_group.super_group_id": super_group_id,
+    });
+    console.log(super_group_all_task);
     superGroup = {
       super_group_id: req.body.super_group_id,
       super_group_title: req.body.super_group_title,
+      super_group_task_list: super_group_all_task.super_group_task_list,
     };
     groupObject.super_group = superGroup;
   }
@@ -27,25 +36,68 @@ const createGroup = async (req, res) => {
 };
 
 const addTaskToGroup = async (req, res) => {
-  const group_id = req.params.id;
-  const existingGroup = await Group.findById(group_id);
-  const taskObject = {
-    group_task_id: req.body.task_id,
-    group_task_title: req.body.task_title,
-  };
-  if (!existingGroup) {
-    res.status(404).send({ errorMessage: "Group is not found." });
-  } else {
-    const updatedGroup = await Group.findOneAndUpdate(group_id, {
-      $push: { group_task: taskObject },
+  const group_id = req.params.group_id;
+  const super_group_id = req.params.super_group_id;
+  console.log(group_id);
+
+  const task_id = req.body.task_id;
+  const task_title = req.body.task_title;
+  console.log(task_id);
+  console.log(task_title);
+  var task_list = [];
+  try {
+    const findNestedValue = await Group.findById(group_id, {
+      nested: 1,
+      _id: 0,
     });
-    if (!updatedGroup) {
-      res
-        .status(500)
-        .send({ errorMessage: "Task does not added to the group." });
+    console.log(findNestedValue.nested);
+    if (group_id && super_group_id && findNestedValue.nested == true) {
+      const updatedSuperGroupTaskList = await Group.updateOne(
+        {
+          _id: group_id,
+          "super_group._id": super_group_id,
+        },
+        {
+          $push: {
+            "super_group.super_group_task_list": {
+              task_id: task_id,
+              task_title: task_title,
+            },
+          },
+        }
+      );
+
+      if (updatedSuperGroupTaskList) {
+        return res
+          .status(201)
+          .send({ message: "Task has been added to the super group." });
+      } else {
+        return res.status(500).send({
+          errorMessage: "Task has not been added to the super group.",
+        });
+      }
     } else {
-      res.status(200).send({ message: "Task has been added to the group." });
+      task_list.push({
+        task_id: task_id,
+        task_title: task_title,
+      });
+      const updatedGroupTaskList = await Group.findOneAndUpdate(group_id, {
+        $push: {
+          group_task_list: task_list,
+        },
+      });
+      if (updatedGroupTaskList) {
+        return res
+          .status(500)
+          .send({ errorMessage: "Task has been added to the sub-group." });
+      } else {
+        return res
+          .status(500)
+          .send({ message: "Task has not been added to the sub-group." });
+      }
     }
+  } catch (error) {
+    console.log(error.message);
   }
 };
 

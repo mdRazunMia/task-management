@@ -9,6 +9,9 @@ router.get("/list/:id", groupController.getSingleGroup);
 router.delete("/delete/:id", groupController.deleteGroup);
 router.put("/edit/:id", groupController.editGroup);
 
-router.put("/add-task/:id", groupController.addTaskToGroup);
+router.put(
+  "/add-task/:group_id/:super_group_id",
+  groupController.addTaskToGroup
+);
 
 module.exports = router;
