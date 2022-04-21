@@ -1,5 +1,4 @@
 const Group = require("../models/groupModel");
-const Task = require("../models/taskModel");
 
 const createGroup = async (req, res) => {
   const groupObject = {
@@ -7,21 +6,63 @@ const createGroup = async (req, res) => {
     nested: req.body.nested,
   };
   var superGroup;
+
   if (req.body.nested == true) {
-    //have to start from here
-    let super_group_task_list = [];
-    const super_group_id = req.body.super_group_id;
-    super_group_all_task = await Group.find({
-      "super_group.super_group_id": super_group_id,
-    });
-    console.log(super_group_all_task);
     superGroup = {
       super_group_id: req.body.super_group_id,
       super_group_title: req.body.super_group_title,
-      super_group_task_list: super_group_all_task.super_group_task_list,
+      super_group_task_list: [],
     };
     groupObject.super_group = superGroup;
   }
+
+  // if (req.body.nested == true) {
+  // const super_group_id = req.body.super_group_id;
+  // console.log(super_group_id);
+  // const group_task_list = await Group.findOne(
+  //   { _id: super_group_id },
+  //   {
+  //     group_task_list: 1,
+  //     _id: 0,
+  //   }
+  // );
+  // superGroup = {
+  //   super_group_id: req.body.super_group_id,
+  //   super_group_title: req.body.super_group_title,
+  //   super_group_task_list: [],
+  // };
+  // var get_task_list = [];
+  // const tasks = group_task_list.group_task_list;
+  // const length = tasks.length;
+  // console.log(`length: ${length}`);
+  // if (length > 0) {
+  // tasks.map((task) => get_task_list.push(task));
+  // await Group.findOneAndUpdate(
+  //   { _id: super_group_id },
+  //   {
+  //     $push: {
+  //       "super_group.$[].super_group_task_list": get_task_list,
+  //     },
+  //   }
+  // );
+
+  //   tasks.map(async (task) => {
+  //     await Group.updateOne(
+  //       { _id: super_group_id },
+  //       {
+  //         $push: {
+  //           "super_group.super_group_task_list": {
+  //             task_id: task.task_id,
+  //             task_title: task.task_title,
+  //           },
+  //         },
+  //       }
+  //     );
+  //   });
+  // }
+
+  // groupObject.super_group = superGroup;
+  // }
 
   const group = new Group(groupObject);
   const saveGroup = await group.save();
@@ -38,20 +79,20 @@ const createGroup = async (req, res) => {
 const addTaskToGroup = async (req, res) => {
   const group_id = req.params.group_id;
   const super_group_id = req.params.super_group_id;
-  console.log(group_id);
-
   const task_id = req.body.task_id;
   const task_title = req.body.task_title;
-  console.log(task_id);
-  console.log(task_title);
+
   var task_list = [];
   try {
     const findNestedValue = await Group.findById(group_id, {
       nested: 1,
       _id: 0,
     });
-    console.log(findNestedValue.nested);
-    if (group_id && super_group_id && findNestedValue.nested == true) {
+    if (
+      group_id &&
+      super_group_id !== "null" &&
+      findNestedValue.nested === true
+    ) {
       const updatedSuperGroupTaskList = await Group.updateOne(
         {
           _id: group_id,
@@ -81,19 +122,23 @@ const addTaskToGroup = async (req, res) => {
         task_id: task_id,
         task_title: task_title,
       });
-      const updatedGroupTaskList = await Group.findOneAndUpdate(group_id, {
-        $push: {
-          group_task_list: task_list,
-        },
-      });
-      if (updatedGroupTaskList) {
-        return res
-          .status(500)
-          .send({ errorMessage: "Task has been added to the sub-group." });
-      } else {
-        return res
-          .status(500)
-          .send({ message: "Task has not been added to the sub-group." });
+      try {
+        const updatedGroupTaskList = await Group.findOneAndUpdate(
+          { _id: group_id },
+          { $push: { group_task_list: task_list } }
+        );
+        console.log(updatedGroupTaskList);
+        if (updatedGroupTaskList) {
+          return res.status(500).send({
+            errorMessage: "Task has been added to the sub-group.",
+          });
+        } else {
+          return res
+            .status(500)
+            .send({ message: "Task has not been added to the sub-group." });
+        }
+      } catch (error) {
+        console.log(error.message);
       }
     }
   } catch (error) {
