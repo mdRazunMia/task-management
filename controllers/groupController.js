@@ -1,4 +1,5 @@
 const Group = require("../models/groupModel");
+const Task = require("../models/taskModel");
 
 const createGroup = async (req, res) => {
   const groupObject = {
@@ -130,7 +131,7 @@ const addTaskToGroup = async (req, res) => {
         console.log(updatedGroupTaskList);
         if (updatedGroupTaskList) {
           return res.status(500).send({
-            errorMessage: "Task has been added to the sub-group.",
+            message: "Task has been added to the sub-group.",
           });
         } else {
           return res
@@ -201,9 +202,76 @@ const editGroup = async (req, res) => {
 const deleteGroup = async (req, res) => {
   const id = req.params.id;
   try {
+    const getNested = await Group.findById(id, { nested: 1 });
+    const getNestedValue = getNested.nested;
+    console.log(getNestedValue);
+    if (getNestedValue === false) {
+      const findGroupTask = await Group.findById(id, {
+        group_task_list: 1,
+      });
+      const groupTaskList = findGroupTask.group_task_list;
+      var listOfTaskId = [];
+      for (let i in groupTaskList) {
+        listOfTaskId.push(groupTaskList[i].task_id);
+      }
+      console.log(listOfTaskId);
+      const deletedTasks = await Task.deleteMany({
+        _id: { $in: listOfTaskId },
+      });
+      if (deletedTasks) {
+        res
+          .status(200)
+          .send({ message: "All the tasks have been deleted successfully." });
+      } else {
+        res.status(200).send({ ErrorMessage: "Tasks cannot be deleted." });
+      }
+    } else {
+      const findGroupTask = await Group.findById(id, {
+        group_task_list: 1,
+      });
+      const groupTaskList = findGroupTask.group_task_list;
+      var listOfGroupTaskId = [];
+      for (let i in groupTaskList) {
+        listOfGroupTaskId.push(groupTaskList[i].task_id);
+      }
+      console.log("Group task list: \n" + listOfGroupTaskId);
+      const findSuperGroupTask = await Group.findById(id, {
+        "super_group.super_group_task_list": 1,
+      });
+      console.log("super group task object: \n" + findSuperGroupTask);
+      const superGroupTaskList =
+        findSuperGroupTask.super_group.super_group_task_list;
+      console.log("Super group task id list: \n" + superGroupTaskList);
+      var listOfSuperGroupTaskId = [];
+      for (let i in superGroupTaskList) {
+        listOfSuperGroupTaskId.push(superGroupTaskList[i].task_id);
+      }
+
+      console.log("List of super group task List: \n" + listOfSuperGroupTaskId);
+
+      //Make a single list from both group and sub-group list
+      var taskListId = [...listOfGroupTaskId, ...listOfSuperGroupTaskId];
+      let taskListIdSet = new Set(taskListId.map((id) => id));
+      let setToTasksListId = [];
+      taskListIdSet.forEach((taskId) => setToTasksListId.push(taskId));
+      console.log("Set to List: \n" + setToTasksListId);
+      const deletedSuperGroupTasks = await Task.deleteMany({
+        _id: { $in: setToTasksListId },
+      });
+      if (deletedSuperGroupTasks) {
+        // res
+        //   .status(200)
+        //   .send({ message: "All the tasks have been deleted successfully." });
+        console.log("All the tasks have been deleted successfully");
+      } else {
+        // res.status(200).send({ ErrorMessage: "Tasks cannot be deleted." });
+        console.log("Tasks cannot be deleted.");
+      }
+    }
+
     const deletedGroup = await Group.findByIdAndDelete(id);
     if (!deletedGroup)
-      return res.status(404).json({ msg: "Group does not exist." });
+      return res.status(404).json({ msg: "Group does not delete." });
     return res
       .status(200)
       .send({ msg: "Group has been deleted successfully." });

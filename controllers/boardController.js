@@ -120,15 +120,25 @@ const getSingleBoard = async (req, res) => {
 
 const editBoard = async (req, res) => {
   const id = req.params.id;
+  const board_title = req.query.boardName;
   try {
     const board = await Board.findById(id);
     if (!board) {
       return res.status(404).send({ msg: "Board does not exist." });
     } else {
-      const updatedBoard = await Board.findByIdAndUpdate(id, req.body, {
-        new: true,
-        runValidators: true,
-      });
+      const updatedBoardInformation = {
+        $set: {
+          board_title: board_title,
+        },
+      };
+      const updatedBoard = await Board.findByIdAndUpdate(
+        { _id: id },
+        updatedBoardInformation,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
       if (!updatedBoard) {
         return res.status(204).send({ msg: "Board does not updated." });
       } else {
