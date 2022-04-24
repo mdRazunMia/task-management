@@ -120,7 +120,7 @@ const getSingleBoard = async (req, res) => {
 
 const editBoard = async (req, res) => {
   const id = req.params.id;
-  const board_title = req.query.boardName;
+  const board_title = req.body.boardName;
   try {
     const board = await Board.findById(id);
     if (!board) {

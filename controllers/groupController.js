@@ -194,29 +194,52 @@ const getSingleGroup = async (req, res) => {
   }
 };
 const editGroup = async (req, res) => {
-  const id = req.params.id;
-  try {
-    const group = await Group.findById(id);
-    if (!group) {
-      return res.status(404).send({ msg: "Group does not exist." });
-    } else {
-      const updatedGroup = await Group.findByIdAndUpdate(id, req.body, {
-        new: true,
-        runValidators: true,
-      });
-      if (!updatedGroup) {
-        return res
-          .status(204)
-          .send({ msg: "Something went wrong. Group does not updated." });
-      } else {
-        return res.status(200).send({
-          group: updatedGroup,
-          msg: "Group has been updated successfully.",
+  const { error, value } = groupInputValidation.groupCreateInputValidation({
+    group_title: req.body.group_title,
+  });
+  if (error) {
+    const errors = [];
+    error.details.forEach((detail) => {
+      const currentMessage = detail.message;
+      detail.path.forEach((value) => {
+        logger.log({
+          level: "error",
+          message: `${currentMessage} | Code: 1-1`,
         });
+        errors.push({ [value]: currentMessage });
+      });
+    });
+    // res.status(422).send({ message: error.details[0].message });
+    res.status(422).send(errors);
+  } else {
+    const id = req.params.id;
+    try {
+      const group = await Group.findById(id);
+      if (!group) {
+        return res.status(404).send({ msg: "Group does not exist." });
+      } else {
+        const updatedGroup = await Group.findByIdAndUpdate(
+          id,
+          { group_title: value.group_title },
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+        if (!updatedGroup) {
+          return res
+            .status(204)
+            .send({ msg: "Something went wrong. Group does not updated." });
+        } else {
+          return res.status(200).send({
+            group: updatedGroup,
+            msg: "Group has been updated successfully.",
+          });
+        }
       }
+    } catch (error) {
+      console.log(error.message);
     }
-  } catch (error) {
-    console.log(error.message);
   }
 };
 
