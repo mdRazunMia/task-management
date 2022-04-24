@@ -1,32 +1,55 @@
 const Board = require("../models/boardModel");
+const boardInputValidation = require("../validations/boardInputValidation");
+const logger = require("../logger/logger");
 
 const createBoard = async (req, res) => {
-  const boardObject = {
+  const { error, value } = boardInputValidation.boardCreateInputValidation({
     board_title: req.body.board_title,
-    nested: req.body.nested,
-    task_list: [],
-  };
-  var boardColumn;
-  if (req.body.nested == true) {
-    boardColumn = {
-      board_column_title: req.body.board_column_title,
-    };
-    boardObject.board_column = boardColumn;
-  }
-
-  const board = new Board(boardObject);
-  try {
-    const saveBoard = await board.save();
-    if (!saveBoard) {
-      res.status(204).send({
-        errorMessage: "Something went wrong. Board does not created.",
+  });
+  if (error) {
+    const errors = [];
+    error.details.forEach((detail) => {
+      const currentMessage = detail.message;
+      detail.path.forEach((value) => {
+        logger.log({
+          level: "error",
+          message: `${currentMessage} | Code: 1-1`,
+        });
+        errors.push({ [value]: currentMessage });
       });
-    } else {
-      console.log(saveBoard);
-      res.status(201).send({ message: "Board has been created successfully." });
+    });
+    // res.status(422).send({ message: error.details[0].message });
+    res.status(422).send(errors);
+  } else {
+    const boardObject = {
+      board_title: value.board_title,
+      nested: req.body.nested,
+      task_list: [],
+    };
+    var boardColumn;
+    if (req.body.nested == true) {
+      boardColumn = {
+        board_column_title: req.body.board_column_title,
+      };
+      boardObject.board_column = boardColumn;
     }
-  } catch (error) {
-    console.log(error.message);
+
+    const board = new Board(boardObject);
+    try {
+      const saveBoard = await board.save();
+      if (!saveBoard) {
+        res.status(204).send({
+          errorMessage: "Something went wrong. Board does not created.",
+        });
+      } else {
+        console.log(saveBoard);
+        res
+          .status(201)
+          .send({ message: "Board has been created successfully." });
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
   }
 };
 

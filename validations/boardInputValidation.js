@@ -13,5 +13,5 @@ const boardCreateInputValidation = (data) => {
 };
 
 module.exports = {
-  groupCreateInputValidation,
+  boardCreateInputValidation,
 };
