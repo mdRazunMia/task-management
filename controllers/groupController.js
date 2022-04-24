@@ -1,79 +1,100 @@
 const Group = require("../models/groupModel");
 const Task = require("../models/taskModel");
+const groupInputValidation = require("../validations/groupInputValidation");
+const logger = require("../logger/logger");
 
 const createGroup = async (req, res) => {
-  const groupObject = {
+  const { error, value } = groupInputValidation.groupCreateInputValidation({
     group_title: req.body.group_title,
-    nested: req.body.nested,
-  };
-  var superGroup;
-
-  if (req.body.nested == true) {
-    superGroup = {
-      super_group_id: req.body.super_group_id,
-      super_group_title: req.body.super_group_title,
-      super_group_task_list: [],
-    };
-    groupObject.super_group = superGroup;
-  }
-
-  // if (req.body.nested == true) {
-  // const super_group_id = req.body.super_group_id;
-  // console.log(super_group_id);
-  // const group_task_list = await Group.findOne(
-  //   { _id: super_group_id },
-  //   {
-  //     group_task_list: 1,
-  //     _id: 0,
-  //   }
-  // );
-  // superGroup = {
-  //   super_group_id: req.body.super_group_id,
-  //   super_group_title: req.body.super_group_title,
-  //   super_group_task_list: [],
-  // };
-  // var get_task_list = [];
-  // const tasks = group_task_list.group_task_list;
-  // const length = tasks.length;
-  // console.log(`length: ${length}`);
-  // if (length > 0) {
-  // tasks.map((task) => get_task_list.push(task));
-  // await Group.findOneAndUpdate(
-  //   { _id: super_group_id },
-  //   {
-  //     $push: {
-  //       "super_group.$[].super_group_task_list": get_task_list,
-  //     },
-  //   }
-  // );
-
-  //   tasks.map(async (task) => {
-  //     await Group.updateOne(
-  //       { _id: super_group_id },
-  //       {
-  //         $push: {
-  //           "super_group.super_group_task_list": {
-  //             task_id: task.task_id,
-  //             task_title: task.task_title,
-  //           },
-  //         },
-  //       }
-  //     );
-  //   });
-  // }
-
-  // groupObject.super_group = superGroup;
-  // }
-
-  const group = new Group(groupObject);
-  const saveGroup = await group.save();
-  if (!saveGroup) {
-    res
-      .status(204)
-      .send({ errorMessage: "Something went wrong. Group does not created." });
+  });
+  if (error) {
+    const errors = [];
+    error.details.forEach((detail) => {
+      const currentMessage = detail.message;
+      detail.path.forEach((value) => {
+        logger.log({
+          level: "error",
+          message: `${currentMessage} | Code: 1-1`,
+        });
+        errors.push({ [value]: currentMessage });
+      });
+    });
+    // res.status(422).send({ message: error.details[0].message });
+    res.status(422).send(errors);
   } else {
-    console.log(saveGroup);
-    res.status(201).send({ message: "Group has been created successfully." });
+    const groupObject = {
+      group_title: value.group_title,
+      nested: req.body.nested,
+    };
+    var superGroup;
+
+    if (req.body.nested == true) {
+      superGroup = {
+        super_group_id: req.body.super_group_id,
+        super_group_title: req.body.super_group_title,
+        super_group_task_list: [],
+      };
+      groupObject.super_group = superGroup;
+    }
+
+    // if (req.body.nested == true) {
+    // const super_group_id = req.body.super_group_id;
+    // console.log(super_group_id);
+    // const group_task_list = await Group.findOne(
+    //   { _id: super_group_id },
+    //   {
+    //     group_task_list: 1,
+    //     _id: 0,
+    //   }
+    // );
+    // superGroup = {
+    //   super_group_id: req.body.super_group_id,
+    //   super_group_title: req.body.super_group_title,
+    //   super_group_task_list: [],
+    // };
+    // var get_task_list = [];
+    // const tasks = group_task_list.group_task_list;
+    // const length = tasks.length;
+    // console.log(`length: ${length}`);
+    // if (length > 0) {
+    // tasks.map((task) => get_task_list.push(task));
+    // await Group.findOneAndUpdate(
+    //   { _id: super_group_id },
+    //   {
+    //     $push: {
+    //       "super_group.$[].super_group_task_list": get_task_list,
+    //     },
+    //   }
+    // );
+
+    //   tasks.map(async (task) => {
+    //     await Group.updateOne(
+    //       { _id: super_group_id },
+    //       {
+    //         $push: {
+    //           "super_group.super_group_task_list": {
+    //             task_id: task.task_id,
+    //             task_title: task.task_title,
+    //           },
+    //         },
+    //       }
+    //     );
+    //   });
+    // }
+
+    // groupObject.super_group = superGroup;
+    // }
+
+    const group = new Group(groupObject);
+    const saveGroup = await group.save();
+    if (!saveGroup) {
+      res.status(204).send({
+        errorMessage: "Something went wrong. Group does not created.",
+      });
+    } else {
+      console.log(saveGroup);
+      res.status(201).send({ message: "Group has been created successfully." });
+    }
   }
 };
 
