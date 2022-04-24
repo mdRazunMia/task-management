@@ -1,19 +1,42 @@
 const Task = require("../models/taskModel");
+const taskInputValidation = require("../validations/taskInputValidation");
+const logger = require("../logger/logger");
 
 const createTask = async (req, res) => {
-  const task = new Task(req.body);
-  try {
-    const saveTask = await task.save();
-    if (!saveTask) {
-      res.status(204).send({
-        errorMessage: "Something went wrong. Group does not created.",
+  const { error, value } = taskInputValidation.taskCreateInputValidation(
+    req.body
+  );
+  if (error) {
+    const errors = [];
+    error.details.forEach((detail) => {
+      const currentMessage = detail.message;
+      detail.path.forEach((value) => {
+        logger.log({
+          level: "error",
+          message: `${currentMessage} | Code: 1-1`,
+        });
+        errors.push({ [value]: currentMessage });
       });
-    } else {
-      console.log(saveTask);
-      res.status(201).send({ message: "Task has been created successfully." });
+    });
+    // res.status(422).send({ message: error.details[0].message });
+    res.status(422).send(errors);
+  } else {
+    const task = new Task({ task_title: value.task_title });
+    try {
+      const saveTask = await task.save();
+      if (!saveTask) {
+        res.status(204).send({
+          errorMessage: "Something went wrong. Task does not created.",
+        });
+      } else {
+        console.log(saveTask);
+        res
+          .status(201)
+          .send({ message: "Task has been created successfully." });
+      }
+    } catch (error) {
+      console.log(error.message);
     }
-  } catch (error) {
-    console.log(error.message);
   }
 };
 
@@ -45,27 +68,50 @@ const getSingleTask = async (req, res) => {
 };
 
 const editTask = async (req, res) => {
-  const id = req.params.id;
-  try {
-    const task = await Task.findById(id);
-    if (!task) {
-      return res.status(404).json({ msg: "Task does not exist." });
-    } else {
-      const updatedTask = await Task.findByIdAndUpdate(id, req.body, {
-        new: true,
-        runValidators: true,
-      });
-      if (!updatedTask) {
-        return res.status(204).send({ msg: "Task does not updated." });
-      } else {
-        return res.status(200).send({
-          task: updatedTask,
-          msg: "Task has been updated successfully.",
+  const { error, value } = taskInputValidation.taskCreateInputValidation(
+    req.body
+  );
+  if (error) {
+    const errors = [];
+    error.details.forEach((detail) => {
+      const currentMessage = detail.message;
+      detail.path.forEach((value) => {
+        logger.log({
+          level: "error",
+          message: `${currentMessage} | Code: 1-1`,
         });
+        errors.push({ [value]: currentMessage });
+      });
+    });
+    // res.status(422).send({ message: error.details[0].message });
+    res.status(422).send(errors);
+  } else {
+    const id = req.params.id;
+    try {
+      const task = await Task.findById(id);
+      if (!task) {
+        return res.status(404).json({ msg: "Task does not exist." });
+      } else {
+        const updatedTask = await Task.findByIdAndUpdate(
+          id,
+          { task_title: value.task_title },
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+        if (!updatedTask) {
+          return res.status(204).send({ msg: "Task does not updated." });
+        } else {
+          return res.status(200).send({
+            task: updatedTask,
+            msg: "Task has been updated successfully.",
+          });
+        }
       }
+    } catch (error) {
+      console.log(error.message);
     }
-  } catch (error) {
-    console.log(error.message);
   }
 };
 
