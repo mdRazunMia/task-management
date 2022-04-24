@@ -3,9 +3,9 @@ const taskInputValidation = require("../validations/taskInputValidation");
 const logger = require("../logger/logger");
 
 const createTask = async (req, res) => {
-  const { error, value } = taskInputValidation.taskCreateInputValidation(
-    req.body
-  );
+  const { error, value } = taskInputValidation.taskCreateInputValidation({
+    task_title: req.body.taskTitle,
+  });
   if (error) {
     const errors = [];
     error.details.forEach((detail) => {
