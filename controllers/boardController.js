@@ -142,37 +142,57 @@ const getSingleBoard = async (req, res) => {
 };
 
 const editBoard = async (req, res) => {
-  const id = req.params.id;
-  const board_title = req.body.boardName;
-  try {
-    const board = await Board.findById(id);
-    if (!board) {
-      return res.status(404).send({ msg: "Board does not exist." });
-    } else {
-      const updatedBoardInformation = {
-        $set: {
-          board_title: board_title,
-        },
-      };
-      const updatedBoard = await Board.findByIdAndUpdate(
-        { _id: id },
-        updatedBoardInformation,
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
-      if (!updatedBoard) {
-        return res.status(204).send({ msg: "Board does not updated." });
-      } else {
-        return res.status(200).send({
-          board: updatedBoard,
-          msg: "Board has been updated successfully.",
+  const { error, value } = boardInputValidation.boardCreateInputValidation({
+    board_title: req.body.boardName,
+  });
+  if (error) {
+    const errors = [];
+    error.details.forEach((detail) => {
+      const currentMessage = detail.message;
+      detail.path.forEach((value) => {
+        logger.log({
+          level: "error",
+          message: `${currentMessage} | Code: 1-1`,
         });
+        errors.push({ [value]: currentMessage });
+      });
+    });
+    // res.status(422).send({ message: error.details[0].message });
+    res.status(422).send(errors);
+  } else {
+    const id = req.params.id;
+    const board_title = value.board_title;
+    try {
+      const board = await Board.findById(id);
+      if (!board) {
+        return res.status(404).send({ msg: "Board does not exist." });
+      } else {
+        const updatedBoardInformation = {
+          $set: {
+            board_title: board_title,
+          },
+        };
+        const updatedBoard = await Board.findByIdAndUpdate(
+          { _id: id },
+          updatedBoardInformation,
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+        if (!updatedBoard) {
+          return res
+            .status(204)
+            .send({ ErrorMessage: "Board does not updated." });
+        } else {
+          return res.status(200).send({
+            message: "Board has been updated successfully.",
+          });
+        }
       }
+    } catch (error) {
+      console.log(error.message);
     }
-  } catch (error) {
-    console.log(error.message);
   }
 };
 
