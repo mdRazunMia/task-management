@@ -127,10 +127,37 @@ const deleteSingleTask = async (req, res) => {
   }
 };
 
+const completedTask = async (req, res) => {
+  const task_id = req.params.id;
+  const findTask = await Task.findById(task_id);
+  if (!findTask) {
+    res.status(404).send({ errorMessage: "Task is not available" });
+  } else {
+    const updatedTask = await Task.findByIdAndUpdate(
+      { _id: task_id },
+      { task_complete: true }
+    );
+    if (!updatedTask) {
+      res.status(500).send({
+        errorMessage: "Something went wrong. Task has  not been updated.",
+      });
+    } else {
+      res.status(500).send({ message: "Task has been updated successfully." });
+    }
+  }
+};
+
+const getCompletedTasks = async (req, res) => {
+  const allCompletedTask = await Task.find({ task_complete: true });
+  res.status(200).send(allCompletedTask);
+};
+
 module.exports = {
   createTask,
   getTasks,
   getSingleTask,
   editTask,
   deleteSingleTask,
+  completedTask,
+  getCompletedTasks,
 };
