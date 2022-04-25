@@ -42,7 +42,9 @@ const createTask = async (req, res) => {
 
 const getTasks = async (req, res) => {
   try {
-    const taskList = await Task.find({});
+    const taskList = await Task.find({ task_complete: false }).sort({
+      createdAt: 1,
+    });
     if (!taskList) {
       res.status(404).send({ message: "There is no task." });
     } else {
@@ -68,9 +70,10 @@ const getSingleTask = async (req, res) => {
 };
 
 const editTask = async (req, res) => {
-  const { error, value } = taskInputValidation.taskCreateInputValidation(
-    req.body
-  );
+  console.log(req.body.task_title);
+  const { error, value } = taskInputValidation.taskCreateInputValidation({
+    task_title: req.body.task_title,
+  });
   if (error) {
     const errors = [];
     error.details.forEach((detail) => {
@@ -142,14 +145,24 @@ const completedTask = async (req, res) => {
         errorMessage: "Something went wrong. Task has  not been updated.",
       });
     } else {
-      res.status(500).send({ message: "Task has been updated successfully." });
+      res.status(200).send({ message: "Task has been updated successfully." });
     }
   }
 };
 
 const getCompletedTasks = async (req, res) => {
-  const allCompletedTask = await Task.find({ task_complete: true });
-  res.status(200).send(allCompletedTask);
+  try {
+    const allCompletedTask = await Task.find({ task_complete: true }).sort({
+      updatedAt: -1,
+    });
+    if (!allCompletedTask) {
+      res.status(400).send({ message: "There is no completed task." });
+    } else {
+      res.status(200).send(allCompletedTask);
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
 };
 
 module.exports = {
