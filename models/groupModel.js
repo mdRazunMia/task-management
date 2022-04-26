@@ -44,6 +44,9 @@ const GroupSchema = mongoose.Schema(
         },
       ],
     },
+    user_id: {
+      type: String,
+    },
   },
   {
     timestamps: true,
