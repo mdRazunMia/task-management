@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
 const redisInstance = require("../redis/redis");
 const logger = require("../logger/logger");
+const jwt = require("jsonwebtoken");
 
 const createUser = async (req, res) => {
   const user = new User(req.body);

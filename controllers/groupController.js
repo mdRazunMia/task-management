@@ -120,12 +120,15 @@ const createGroup = async (req, res) => {
     res.status(422).send(errors);
   } else {
     if (req.body.nested == true) {
-      const super_group_id = req.params.super_group_id;
+      const super_group_id = req.query.super_group_id;
       // const super_group_title = req.body.super_group_title;
       const sub_group_title = value.group_title;
 
+      console.log(super_group_id);
+      console.log(sub_group_title);
+
       try {
-        const updatedSubGroupList = await Group.updateOne(
+        const updatedSubGroupList = await Group.findByIdAndUpdate(
           {
             _id: super_group_id,
           },
