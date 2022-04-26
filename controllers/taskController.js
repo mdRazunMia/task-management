@@ -21,7 +21,10 @@ const createTask = async (req, res) => {
     // res.status(422).send({ message: error.details[0].message });
     res.status(422).send(errors);
   } else {
-    const task = new Task({ task_title: value.task_title });
+    const task = new Task({
+      task_title: value.task_title,
+      user_id: req.user.userId,
+    });
     try {
       const saveTask = await task.save();
       if (!saveTask) {
