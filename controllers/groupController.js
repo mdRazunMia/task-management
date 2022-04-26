@@ -133,6 +133,7 @@ const createGroup = async (req, res) => {
             _id: super_group_id,
           },
           {
+            nested: true,
             $push: {
               sub_group: {
                 sub_group_title: sub_group_title,
