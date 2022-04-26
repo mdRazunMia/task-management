@@ -43,11 +43,13 @@ router.get(
           console.log(userId);
           const authToken = jwt.sign(
             { userEmail: userEmail, userId: userId },
-            process.env.TOKEN_SECRET
+            process.env.TOKEN_SECRET,
+            { expiresIn: process.env.JWT_EXPIRE_TIME }
           );
           const refreshToken = jwt.sign(
             { userEmail: userEmail, userId: userId },
-            process.env.REFRESH_TOKEN_SECRET
+            process.env.REFRESH_TOKEN_SECRET,
+            { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_TIME }
           );
           redisClient.set(
             userEmail,
@@ -80,11 +82,13 @@ router.get(
       } else {
         const authToken = jwt.sign(
           { userEmail: userEmail, userId: user._id },
-          process.env.TOKEN_SECRET
+          process.env.TOKEN_SECRET,
+          { expiresIn: process.env.JWT_EXPIRE_TIME }
         );
         const refreshToken = jwt.sign(
-          { userEmail: userEmail, userId: user._id },
-          process.env.REFRESH_TOKEN_SECRET
+          { userEmail: userEmail, userId: userId },
+          process.env.REFRESH_TOKEN_SECRET,
+          { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_TIME }
         );
         redisClient.set(
           userEmail,

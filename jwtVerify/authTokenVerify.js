@@ -3,6 +3,7 @@ const logger = require("../logger/logger");
 
 const auth = (req, res, next) => {
   const token = req.header("auth-token");
+  console.log("Token:" + token);
   if (!token) {
     logger.log({
       level: "error",
