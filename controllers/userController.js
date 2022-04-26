@@ -1,4 +1,6 @@
 const User = require("../models/userModel");
+const redisInstance = require("../redis/redis");
+const logger = require("../logger/logger");
 
 const createUser = async (req, res) => {
   const user = new User(req.body);
@@ -81,10 +83,69 @@ const deleteSingleUser = async (req, res) => {
   }
 };
 
+const userRefreshToken = async (req, res) => {
+  const redisClient = redisInstance.getRedisClient();
+  const refreshToken = req.header("refresh-token");
+  if (!refreshToken) {
+    logger.log({
+      level: "error",
+      message: "Access denied because token is not available. | code: 10-1",
+    });
+    return res.status(401).send({ errorMessage: "Access Denied." });
+  }
+  const verified = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+  const userEmail = verified.userEmail;
+  const redisUserEmail = await redisClient.get(userEmail);
+  if (redisUserEmail === null) {
+    logger.log({
+      level: "info",
+      message: "Login first before get refresh token. | code: 10-4",
+    });
+    return res.status(401).send({ errorMessage: "Please login first" });
+  } else {
+    try {
+      const authToken = jwt.sign(
+        { userEmail: userEmail },
+        process.env.TOKEN_SECRET,
+        { expiresIn: process.env.JWT_EXPIRE_TIME }
+      );
+      logger.log({
+        level: "info",
+        message:
+          "Authentication and refresh token have been sent. | code: 10-5",
+      });
+      res.status(200).send({ authToken: authToken });
+    } catch (error) {
+      logger.log({
+        level: "error",
+        message: "Internal error in refresh token function. | code: 10-6",
+      });
+      res
+        .status(500)
+        .send({ userRefreshTokenErrorMessage: "Something went wrong." });
+    }
+  }
+};
+
+const userLogOut = (req, res) => {
+  const redisClient = redisInstance.getRedisClient();
+  const userEmail = req.user.userEmail;
+  redisClient.del(userEmail);
+  logger.log({
+    level: "info",
+    message: "User has been logged out successfully. | 12-1",
+  });
+  res
+    .status(200)
+    .send({ userLogoutMessage: "User has been logged out successfully." });
+};
+
 module.exports = {
   createUser,
   getUsers,
   getSingleUser,
   editUser,
   deleteSingleUser,
+  userRefreshToken,
+  userLogOut,
 };

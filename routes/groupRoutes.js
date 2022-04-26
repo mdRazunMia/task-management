@@ -2,15 +2,17 @@ const express = require("express");
 const router = express.Router();
 
 const groupController = require("../controllers/groupController");
+const authTokenVerify = require("../jwtVerify/authTokenVerify");
 
-router.post("/create", groupController.createGroup);
-router.get("/list", groupController.getGroups);
-router.get("/list/:id", groupController.getSingleGroup);
-router.delete("/delete/:id", groupController.deleteGroup);
-router.put("/edit/:id", groupController.editGroup);
+router.post("/create", authTokenVerify, groupController.createGroup);
+router.get("/list", authTokenVerify, groupController.getGroups);
+router.get("/list/:id", authTokenVerify, groupController.getSingleGroup);
+router.delete("/delete/:id", authTokenVerify, groupController.deleteGroup);
+router.put("/edit/:id", authTokenVerify, groupController.editGroup);
 
 router.put(
   "/add-task/:group_id/:super_group_id",
+  authTokenVerify,
   groupController.addTaskToGroup
 );
 

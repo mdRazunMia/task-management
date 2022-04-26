@@ -18,6 +18,10 @@ const UserSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    user_login_medium: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,
