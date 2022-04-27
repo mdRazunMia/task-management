@@ -77,6 +77,9 @@ const GroupSchema = mongoose.Schema(
           type: String,
           default: null,
         },
+        user_id: {
+          type: String,
+        },
       },
     ],
     nested: {

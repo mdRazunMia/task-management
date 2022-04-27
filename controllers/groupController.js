@@ -235,6 +235,7 @@ const addTaskToGroup = async (req, res) => {
       task_list.push({
         task_id: task_id,
         task_title: task_title,
+        user_id: user_id,
       });
       try {
         const updatedGroupTaskList = await Group.findOneAndUpdate(
@@ -249,7 +250,7 @@ const addTaskToGroup = async (req, res) => {
         } else {
           return res
             .status(500)
-            .send({ message: "Task has not been added to the sub-group." });
+            .send({ message: "Task has not been added to the group." });
         }
       } catch (error) {
         console.log(error.message);
