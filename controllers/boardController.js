@@ -23,7 +23,6 @@ const createBoard = async (req, res) => {
   } else {
     const boardObject = {
       board_title: value.board_title,
-      nested: req.body.nested,
       task_list: [],
     };
     var boardColumn;
@@ -31,6 +30,7 @@ const createBoard = async (req, res) => {
       boardColumn = {
         board_column_title: req.body.board_column_title,
       };
+      boardObject.nested = req.body.nested;
       boardObject.board_column = boardColumn;
     }
 
