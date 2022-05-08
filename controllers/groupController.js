@@ -120,7 +120,7 @@ const createGroup = async (req, res) => {
     res.status(422).send(errors);
   } else {
     if (req.body.nested == true) {
-      const super_group_id = req.query.super_group_id;
+      const super_group_id = req.body.super_group_id;
       // const super_group_title = req.body.super_group_title;
       const sub_group_title = value.group_title;
 
