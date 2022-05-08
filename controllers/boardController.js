@@ -1,4 +1,6 @@
 const Board = require("../models/boardModel");
+const Group = require("../models/groupModel");
+const Task = require("../models/taskModel");
 const boardInputValidation = require("../validations/boardInputValidation");
 const logger = require("../logger/logger");
 
@@ -125,6 +127,52 @@ const createBoard = async (req, res) => {
       }
     }
   }
+};
+
+const getGroupsAndTasks = async (req, res) => {
+  var groupList = [];
+  var taskList = [];
+  var allTasksAndGroups = [];
+  try {
+    const getGroups = await Group.find();
+    getGroups.map((group) => {
+      var modifiedGroupObject = {
+        group_id: group._id,
+        group_title: group.group_title,
+        group_task_list: group.group_task_list,
+        nested: group.nested,
+      };
+      if (group.nested === true) {
+        modifiedGroupObject.sub_group = JSON.parse(
+          JSON.stringify(group.sub_group)
+        );
+      }
+      modifiedGroupObject.group = true;
+      groupList.push(modifiedGroupObject);
+    });
+    // console.log(groupList);
+    // res.send(groupList);
+  } catch (error) {
+    console.log(error.message);
+  }
+
+  try {
+    const getTasks = await Task.find();
+    getTasks.map((task) => {
+      var modifiedTaskObject = {
+        task_id: task._id,
+        task_title: task.task_title,
+        task: true,
+      };
+      taskList.push(modifiedTaskObject);
+    });
+    // res.send(taskList);
+  } catch (error) {
+    console.log(error.message);
+  }
+
+  allTasksAndGroups = [...taskList, ...groupList];
+  res.send(allTasksAndGroups);
 };
 
 const addTaskToColumn = async (req, res) => {
@@ -291,4 +339,5 @@ module.exports = {
   editBoard,
   deleteSingleBoard,
   addTaskToColumn,
+  getGroupsAndTasks,
 };

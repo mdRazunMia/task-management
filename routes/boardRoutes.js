@@ -14,5 +14,10 @@ router.delete(
 );
 router.put("/edit/:id", authTokenVerify, boardController.editBoard);
 router.put("/add-task/:id", authTokenVerify, boardController.addTaskToColumn);
+router.get(
+  "/get-groups-tasks",
+  authTokenVerify,
+  boardController.getGroupsAndTasks
+);
 
 module.exports = router;

@@ -33,6 +33,7 @@ const createTask = async (req, res) => {
         });
       } else {
         console.log(saveTask);
+        const allTasks = await Task.find();
         res
           .status(201)
           .send({ message: "Task has been created successfully." });
