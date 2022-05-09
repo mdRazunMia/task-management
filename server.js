@@ -44,6 +44,8 @@ function expressServerApp() {
   const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
 
   const app = express();
+  const server = require("http").createServer(app);
+  const io = require("socket.io")(server);
   app.use(cookieParser());
   const whitelist = [`${process.env.BASE_URL_FRONT_END}`];
   const corsOptions = {
@@ -112,8 +114,10 @@ function expressServerApp() {
   app.use("/user", userRoute);
   app.use("/auth", googleLoginRoute);
   app.use("/auth", linkedinLoginRoute);
-
-  app.listen(process.env.PORT, () => {
+  // io.on("connect", () => {
+  //   console.log("connection using socket has been built up.");
+  // });
+  server.listen(process.env.PORT, () => {
     console.log(
       `task-management server is running on prot : ${process.env.PORT}`
     );

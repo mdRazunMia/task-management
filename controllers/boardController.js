@@ -150,8 +150,6 @@ const getGroupsAndTasks = async (req, res) => {
       modifiedGroupObject.group = true;
       groupList.push(modifiedGroupObject);
     });
-    // console.log(groupList);
-    // res.send(groupList);
   } catch (error) {
     console.log(error.message);
   }
@@ -166,15 +164,15 @@ const getGroupsAndTasks = async (req, res) => {
       };
       taskList.push(modifiedTaskObject);
     });
-    // res.send(taskList);
   } catch (error) {
     console.log(error.message);
   }
 
   allTasksAndGroups = [...taskList, ...groupList];
-  res.send(allTasksAndGroups);
+  res.status(200).send(allTasksAndGroups);
 };
 
+//have to perform for modified version of the model
 const addTaskToColumn = async (req, res) => {
   const board_id = req.params.id;
   const board_column_id = req.query.column_id;
