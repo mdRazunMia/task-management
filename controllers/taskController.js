@@ -34,9 +34,10 @@ const createTask = async (req, res) => {
       } else {
         console.log(saveTask);
         const allTasks = await Task.find();
-        res
-          .status(201)
-          .send({ message: "Task has been created successfully." });
+        res.status(201).send({
+          message: "Task has been created successfully.",
+          task: saveTask,
+        });
       }
     } catch (error) {
       console.log(error.message);
@@ -149,7 +150,11 @@ const completedTask = async (req, res) => {
         errorMessage: "Something went wrong. Task has  not been updated.",
       });
     } else {
-      res.status(200).send({ message: "Task has been updated successfully." });
+      const allTask = await Task.find({ task_complete: false });
+      res.status(200).send({
+        message: "Task has been updated successfully.",
+        tasks: allTask,
+      });
     }
   }
 };
