@@ -175,14 +175,71 @@ const getGroupsAndTasks = async (req, res) => {
 };
 
 //have to perform for modified version of the model
-const addTaskToColumn = async (req, res) => {
+// const addTaskToColumn = async (req, res) => {
+//   const board_id = req.params.id;
+//   const board_column_id = req.query.column_id;
+//   const user_id = req.user.userId;
+//   console.log(board_column_id);
+//   const task_id = req.body.task_id;
+//   const task_title = req.body.task_title;
+//   var task_list = [];
+//   try {
+//     const findNestedValue = await Board.findById(board_id, {
+//       nested: 1,
+//       _id: 0,
+//     });
+//     console.log(findNestedValue);
+//     if (findNestedValue.nested == true) {
+//       const updatedBoardColumn = await Board.updateOne(
+//         {
+//           _id: board_id,
+//           "board_column._id": board_column_id,
+//         },
+//         {
+//           $push: {
+//             "board_column.$[].board_column_task_list": {
+//               task_id: task_id,
+//               task_title: task_title,
+//             },
+//           },
+//         }
+//       );
+//       console.log(updatedBoardColumn);
+//       if (!updatedBoardColumn) {
+//         return res
+//           .status(500)
+//           .send({ errorMessage: "Task is not added to the column." });
+//       } else {
+//         return res
+//           .status(200)
+//           .send({ message: "Task is added to the column." });
+//       }
+//     } else {
+//       task_list.push({
+//         task_id: task_id,
+//         task_title: task_title,
+//       });
+//       const updatedBoardColumn = await Board.findOneAndUpdate(
+//         { _id: board_id },
+//         { $push: { task_list: task_list } }
+//       );
+//       if (!updatedBoardColumn) {
+//         return res
+//           .status(500)
+//           .send({ errorMessage: "Task is not added to the board." });
+//       } else {
+//         return res.status(200).send({ message: "Task is added to the board." });
+//       }
+//     }
+//   } catch (error) {
+//     console.log(error.message);
+//   }
+// };
+
+const addToBoard = async (req, res) => {
+  const data = req.body;
   const board_id = req.params.id;
   const board_column_id = req.query.column_id;
-  const user_id = req.user.userId;
-  console.log(board_column_id);
-  const task_id = req.body.task_id;
-  const task_title = req.body.task_title;
-  var task_list = [];
   try {
     const findNestedValue = await Board.findById(board_id, {
       nested: 1,
@@ -197,10 +254,11 @@ const addTaskToColumn = async (req, res) => {
         },
         {
           $push: {
-            "board_column.$[].board_column_task_list": {
-              task_id: task_id,
-              task_title: task_title,
-            },
+            // "board_column.$[].board_column_task_list": {
+            //   task_id: task_id,
+            //   task_title: task_title,
+            // },
+            "board_column.$[].board_column_task_list": data,
           },
         }
       );
@@ -215,13 +273,14 @@ const addTaskToColumn = async (req, res) => {
           .send({ message: "Task is added to the column." });
       }
     } else {
-      task_list.push({
-        task_id: task_id,
-        task_title: task_title,
-      });
+      // task_list.push({
+      //   task_id: task_id,
+      //   task_title: task_title,
+      // });
       const updatedBoardColumn = await Board.findOneAndUpdate(
         { _id: board_id },
-        { $push: { task_list: task_list } }
+        // { $push: { task_list: task_list } }
+        { $push: { task_list: data } }
       );
       if (!updatedBoardColumn) {
         return res
@@ -339,6 +398,7 @@ module.exports = {
   getSingleBoard,
   editBoard,
   deleteSingleBoard,
-  addTaskToColumn,
+  // addTaskToColumn,
   getGroupsAndTasks,
+  addToBoard,
 };

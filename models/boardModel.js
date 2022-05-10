@@ -18,26 +18,26 @@ const boardSchema = mongoose.Schema(
           default: null,
         },
         board_column_task_list: [
-          {
-            task_id: {
-              type: String,
-            },
-            task_title: {
-              type: String,
-            },
-          },
+          // {
+          //   task_id: {
+          //     type: String,
+          //   },
+          //   task_title: {
+          //     type: String,
+          //   },
+          // },
         ],
       },
     ],
     task_list: [
-      {
-        task_id: {
-          type: String,
-        },
-        task_title: {
-          type: String,
-        },
-      },
+      // {
+      //   task_id: {
+      //     type: String,
+      //   },
+      //   task_title: {
+      //     type: String,
+      //   },
+      // },
     ],
     user_id: {
       type: String,

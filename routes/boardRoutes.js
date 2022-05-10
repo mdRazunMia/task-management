@@ -13,7 +13,8 @@ router.delete(
   boardController.deleteSingleBoard
 );
 router.put("/edit/:id", authTokenVerify, boardController.editBoard);
-router.put("/add-task/:id", authTokenVerify, boardController.addTaskToColumn);
+// router.put("/add-task/:id", authTokenVerify, boardController.addTaskToColumn);
+router.put("/add-task/:id", authTokenVerify, boardController.addToBoard);
 router.get(
   "/get-groups-tasks",
   authTokenVerify,
