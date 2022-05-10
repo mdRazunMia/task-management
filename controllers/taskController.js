@@ -1,6 +1,7 @@
 const Task = require("../models/taskModel");
 const taskInputValidation = require("../validations/taskInputValidation");
 const logger = require("../logger/logger");
+const io = require("socket.io");
 
 const createTask = async (req, res) => {
   const { error, value } = taskInputValidation.taskCreateInputValidation({
@@ -32,8 +33,17 @@ const createTask = async (req, res) => {
           errorMessage: "Something went wrong. Task does not created.",
         });
       } else {
-        console.log(saveTask);
-        const allTasks = await Task.find();
+        // const allTasks = await Task.find({ task_complete: false });
+        // let allTaskList = [];
+        // allTaskList = [...allTasks, saveTask];
+        // req.io.on("connection", (socket) => {
+        //   console.log("from get task");
+        //   socket.on("get-tasks", () => {
+        //     console.log(allTasks);
+        //     req.io.emit("all-tasks", allTaskList);
+        //   });
+        // });
+        // console.log(saveTask);
         res.status(201).send({
           message: "Task has been created successfully.",
           task: saveTask,

@@ -53,6 +53,10 @@ function expressServerApp() {
       origin: "*",
     },
   });
+  app.use(function (req, res, next) {
+    req.io = io;
+    next();
+  });
   app.use(cookieParser());
   const whitelist = [`${process.env.BASE_URL_FRONT_END}`];
   const corsOptions = {
@@ -122,8 +126,8 @@ function expressServerApp() {
   app.use("/auth", googleLoginRoute);
   app.use("/auth", linkedinLoginRoute);
   io.on("connection", (socket) => {
-    console.log("connection using socket has been built up.");
-    io.emit("hello", "This is a welcome message.");
+    console.log("socket connection has been established.");
+    // io.emit("hello", "This is a welcome message.");
   });
   server.listen(process.env.PORT, () => {
     console.log(

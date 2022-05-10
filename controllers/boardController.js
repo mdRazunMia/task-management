@@ -74,6 +74,7 @@ const createBoard = async (req, res) => {
     // res.status(422).send({ message: error.details[0].message });
     res.status(422).send(errors);
   } else {
+    const user_id = req.user.userId;
     if (req.body.nested == true) {
       const board_id = req.body.board_id;
       const board_column_title = value.board_title;
@@ -108,6 +109,7 @@ const createBoard = async (req, res) => {
       const boardObject = {
         board_title: value.board_title,
         nested: req.body.nested,
+        user_id: user_id,
       };
       try {
         const board = new Board(boardObject);
@@ -176,6 +178,7 @@ const getGroupsAndTasks = async (req, res) => {
 const addTaskToColumn = async (req, res) => {
   const board_id = req.params.id;
   const board_column_id = req.query.column_id;
+  const user_id = req.user.userId;
   console.log(board_column_id);
   const task_id = req.body.task_id;
   const task_title = req.body.task_title;
