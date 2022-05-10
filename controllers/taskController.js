@@ -119,11 +119,13 @@ const editTask = async (req, res) => {
           }
         );
         if (!updatedTask) {
-          return res.status(204).send({ msg: "Task does not updated." });
+          return res
+            .status(204)
+            .send({ errorMessage: "Task does not updated." });
         } else {
           return res.status(200).send({
             task: updatedTask,
-            msg: "Task has been updated successfully.",
+            message: "Task has been updated successfully.",
           });
         }
       }
