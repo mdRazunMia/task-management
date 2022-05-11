@@ -118,6 +118,7 @@ const createGroup = async (req, res) => {
     // res.status(422).send({ message: error.details[0].message });
     res.status(422).send(errors);
   } else {
+    const user_id = req.user.userId;
     if (req.body.nested == true) {
       const super_group_id = req.body.super_group_id;
       // const super_group_title = req.body.super_group_title;
@@ -157,6 +158,7 @@ const createGroup = async (req, res) => {
       const groupObject = {
         group_title: value.group_title,
         nested: req.body.nested,
+        user_id: user_id,
       };
       try {
         const group = new Group(groupObject);
