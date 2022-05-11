@@ -275,17 +275,60 @@ const getGroups = async (req, res) => {
 };
 const getSingleGroup = async (req, res) => {
   const id = req.params.id;
-  try {
-    const group = await Group.findById(id);
-    if (!group) {
-      res.status(404).send({ message: "Group is not found." });
-    } else {
-      res.status(200).send(group);
+  const sub_id = req.query.sub_id;
+  if (id && sub_id) {
+    try {
+      const subGroup = await Group.find(
+        {
+          _id: id,
+          "sub_group._id": sub_id,
+        },
+        {
+          group_title: 1,
+          "sub_group.sub_group_title": 1,
+          "sub_group.sub_group_task_list": 1,
+          "sub_group._id": 1,
+        }
+      );
+      if (!subGroup) {
+        res.status(404).send({ message: "Group is not found." });
+      } else {
+        // let data = [];
+        // subGroup.map((group) => {
+        //   // console.log(group);
+        //   let sub_group_data = group.sub_group;
+        //   // console.log(sub_group_data);
+        //   sub_group_data.map((singleSubGroup) => {
+        //     // console.log(singleSubGroup._id);
+        //     const id = singleSubGroup._id;
+        //     console.log(id);
+        //     if (id === ) {
+        //       // data.push(singleSubGroup);
+        //       console.log("Okay");
+        //     }
+        //   });
+        // });
+        // console.log(data);
+        res.status(200).send(subGroup);
+        // res.status(200).send(data)
+      }
+    } catch (error) {
+      console.log(error.message);
     }
-  } catch (error) {
-    console.log(error.message);
+  } else {
+    try {
+      const group = await Group.findById(id);
+      if (!group) {
+        res.status(404).send({ message: "Group is not found." });
+      } else {
+        res.status(200).send(group);
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
   }
 };
+
 const editGroup = async (req, res) => {
   const { error, value } = groupInputValidation.groupCreateInputValidation({
     group_title: req.body.group_title,

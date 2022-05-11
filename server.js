@@ -125,10 +125,10 @@ function expressServerApp() {
   app.use("/user", userRoute);
   app.use("/auth", googleLoginRoute);
   app.use("/auth", linkedinLoginRoute);
-  io.on("connection", (socket) => {
-    console.log("socket connection has been established.");
-    // io.emit("hello", "This is a welcome message.");
-  });
+  // io.on("connection", (socket) => {
+  //   console.log("socket connection has been established.");
+  //   // io.emit("hello", "This is a welcome message.");
+  // });
   server.listen(process.env.PORT, () => {
     console.log(
       `task-management server is running on prot : ${process.env.PORT}`
