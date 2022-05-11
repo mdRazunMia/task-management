@@ -306,32 +306,65 @@ const editGroup = async (req, res) => {
     res.status(422).send(errors);
   } else {
     const id = req.params.id;
-    try {
-      const group = await Group.findById(id);
-      if (!group) {
-        return res.status(404).send({ msg: "Group does not exist." });
-      } else {
-        const updatedGroup = await Group.findByIdAndUpdate(
-          id,
-          { group_title: value.group_title },
-          {
-            new: true,
-            runValidators: true,
-          }
-        );
-        if (!updatedGroup) {
-          return res
-            .status(204)
-            .send({ msg: "Something went wrong. Group does not updated." });
+    const sub_id = req.query.sub_id;
+
+    if (id && sub_id) {
+      try {
+        const group = await Group.findById({
+          _id: id,
+          "sub_group._id": sub_id,
+        });
+        if (!group) {
+          return res.status(404).send({ msg: "Group does not exist." });
         } else {
-          return res.status(200).send({
-            group: updatedGroup,
-            msg: "Group has been updated successfully.",
-          });
+          const updatedSubGroupTitle = await Group.updateOne(
+            { _id: id, "sub_group._id": sub_id },
+            {
+              "sub_group.$[].sub_group_title": value.group_title,
+            }
+          );
+          if (!updatedSubGroupTitle) {
+            return res.status(204).send({
+              msg: "Something went wrong. Sub-group does not updated.",
+            });
+          } else {
+            return res.status(200).send({
+              group: updatedSubGroupTitle,
+              msg: "Sub-group has been updated successfully.",
+            });
+          }
         }
+      } catch (error) {
+        console.log(error.message);
       }
-    } catch (error) {
-      console.log(error.message);
+    } else {
+      try {
+        const group = await Group.findById(id);
+        if (!group) {
+          return res.status(404).send({ msg: "Group does not exist." });
+        } else {
+          const updatedGroup = await Group.findByIdAndUpdate(
+            id,
+            { group_title: value.group_title },
+            {
+              new: true,
+              runValidators: true,
+            }
+          );
+          if (!updatedGroup) {
+            return res
+              .status(204)
+              .send({ msg: "Something went wrong. Group does not updated." });
+          } else {
+            return res.status(200).send({
+              group: updatedGroup,
+              msg: "Group has been updated successfully.",
+            });
+          }
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
     }
   }
 };
