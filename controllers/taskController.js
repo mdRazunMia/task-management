@@ -56,8 +56,12 @@ const createTask = async (req, res) => {
 };
 
 const getTasks = async (req, res) => {
+  const user_id = req.user.userId;
   try {
-    const taskList = await Task.find({ task_complete: false }).sort({
+    const taskList = await Task.find({
+      task_complete: false,
+      user_id: user_id,
+    }).sort({
       createdAt: 1,
     });
     if (!taskList) {
@@ -72,8 +76,9 @@ const getTasks = async (req, res) => {
 
 const getSingleTask = async (req, res) => {
   const id = req.params.id;
+  const user_id = req.user.userId;
   try {
-    const task = await Task.findById(id);
+    const task = await Task.findOne({ _id: id, user_id: user_id });
     if (!task) {
       res.status(404).send({ message: "Task is not found." });
     } else {
@@ -105,8 +110,9 @@ const editTask = async (req, res) => {
     res.status(422).send(errors);
   } else {
     const id = req.params.id;
+    const user_id = req.user.userId;
     try {
-      const task = await Task.findById(id);
+      const task = await Task.findOne({ _id: id, user_id: user_id });
       if (!task) {
         return res.status(404).json({ msg: "Task does not exist." });
       } else {
@@ -137,8 +143,12 @@ const editTask = async (req, res) => {
 
 const deleteSingleTask = async (req, res) => {
   const id = req.params.id;
+  const user_id = req.user.userId;
   try {
-    const deletedTask = await Task.findByIdAndDelete(id);
+    const deletedTask = await Task.findOneAndDelete({
+      _id: id,
+      user_id: user_id,
+    });
     if (!deletedTask)
       return res.status(404).send({ msg: "Task does not exist." });
     return res.status(200).send({ msg: "Task has been deleted successfully." });
@@ -149,12 +159,13 @@ const deleteSingleTask = async (req, res) => {
 
 const completedTask = async (req, res) => {
   const task_id = req.params.id;
-  const findTask = await Task.findById(task_id);
+  const user_id = req.user.userId;
+  const findTask = await Task.findOne({ _id: task_id, user_id: user_id });
   if (!findTask) {
     res.status(404).send({ errorMessage: "Task is not available" });
   } else {
-    const updatedTask = await Task.findByIdAndUpdate(
-      { _id: task_id },
+    const updatedTask = await Task.findOneAndUpdate(
+      { _id: task_id, user_id: user_id },
       { task_complete: true }
     );
     if (!updatedTask) {
@@ -172,8 +183,12 @@ const completedTask = async (req, res) => {
 };
 
 const getCompletedTasks = async (req, res) => {
+  const user_id = req.user.userId;
   try {
-    const allCompletedTask = await Task.find({ task_complete: true }).sort({
+    const allCompletedTask = await Task.find({
+      task_complete: true,
+      user_id: user_id,
+    }).sort({
       updatedAt: -1,
     });
     if (!allCompletedTask) {
