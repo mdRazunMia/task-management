@@ -294,7 +294,103 @@ const addToBoard = async (req, res) => {
     console.log(error.message);
   }
 };
-
+const deleteFromBoard = async (req, res) => {
+  const board_id = req.params.id;
+  const column_id = req.query.column_id;
+  const group_or_task_id = req.query.item_id;
+  if (req.body.nested === true) {
+    if (req.body.group === true) {
+      const deletedItemFromBoard = await Board.updateOne(
+        { _id: board_id, "board_column._id": column_id },
+        {
+          $pull: {
+            // "board_column.$[].board_column_task_list._id":  group_or_task_id
+            "board_column.$[].board_column_task_list": {
+              group_id: group_or_task_id,
+            },
+          },
+        }
+      );
+      if (!deletedItemFromBoard) {
+        res.status(500).send({
+          errorMessage:
+            "Something went wrong. Group didn't deleted from the board.",
+        });
+      } else {
+        res
+          .status(200)
+          .send({ message: "Group has been deleted from the board" });
+      }
+    } else {
+      const deletedItemFromBoard = await Board.updateOne(
+        { _id: board_id, "board_column._id": column_id },
+        {
+          $pull: {
+            // "board_column.$[].board_column_task_list._id":  group_or_task_id
+            // "board_column.board_column_task_list.task_id": group_or_task_id,
+            "board_column.$[].board_column_task_list": {
+              task_id: group_or_task_id,
+            },
+          },
+        }
+      );
+      if (!deletedItemFromBoard) {
+        res.status(500).send({
+          errorMessage:
+            "Something went wrong. Task didn't deleted from the board.",
+        });
+      } else {
+        res
+          .status(200)
+          .send({ message: "Task has been deleted from the board" });
+      }
+    }
+  } else {
+    if (req.body.group === true) {
+      const deletedItemFromBoard = await Board.updateOne(
+        { _id: board_id },
+        {
+          $pull: {
+            // "board_column.$[].board_column_task_list._id":  group_or_task_id
+            // "task_list.group_id": group_or_task_id,
+            task_list: { group_id: group_or_task_id },
+          },
+        }
+      );
+      if (!deletedItemFromBoard) {
+        res.status(500).send({
+          errorMessage:
+            "Something went wrong. Group didn't deleted from the board.",
+        });
+      } else {
+        res
+          .status(200)
+          .send({ message: "Group has been deleted from the board" });
+      }
+    } else {
+      const deletedItemFromBoard = await Board.updateOne(
+        { _id: board_id, "task_list.task_id": group_or_task_id },
+        {
+          $pull: {
+            // "board_column.$[].board_column_task_list._id":  group_or_task_id
+            // "task_list.$[].task_id": group_or_task_id,
+            task_list: { task_id: group_or_task_id },
+          },
+        }
+      );
+      if (!deletedItemFromBoard) {
+        res.status(500).send({
+          errorMessage:
+            "Something went wrong. Task didn't deleted from the board.",
+        });
+      } else {
+        res
+          .status(200)
+          .send({ message: "task has been deleted from the board" });
+      }
+    }
+  }
+};
 const getBoards = async (req, res) => {
   try {
     const boardList = await Board.find({});
@@ -401,4 +497,5 @@ module.exports = {
   // addTaskToColumn,
   getGroupsAndTasks,
   addToBoard,
+  deleteFromBoard,
 };

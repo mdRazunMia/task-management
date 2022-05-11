@@ -20,5 +20,10 @@ router.get(
   authTokenVerify,
   boardController.getGroupsAndTasks
 );
+router.put(
+  "/delete-board-item/:id",
+  authTokenVerify,
+  boardController.deleteFromBoard
+);
 
 module.exports = router;
