@@ -2,7 +2,6 @@ const Group = require("../models/groupModel");
 const Task = require("../models/taskModel");
 const groupInputValidation = require("../validations/groupInputValidation");
 const logger = require("../logger/logger");
-const { RDS } = require("aws-sdk");
 
 // const createGroup = async (req, res) => {
 //   const { error, value } = groupInputValidation.groupCreateInputValidation({

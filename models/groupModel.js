@@ -77,6 +77,10 @@ const GroupSchema = mongoose.Schema(
           type: String,
           default: null,
         },
+        task_complete: {
+          type: Boolean,
+          default: false,
+        },
         user_id: {
           type: String,
         },
@@ -100,6 +104,10 @@ const GroupSchema = mongoose.Schema(
             },
             task_title: {
               type: String,
+            },
+            task_complete: {
+              type: Boolean,
+              default: false,
             },
             user_id: {
               type: String,
