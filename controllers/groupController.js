@@ -293,24 +293,28 @@ const getSingleGroup = async (req, res) => {
       if (!subGroup) {
         res.status(404).send({ message: "Group is not found." });
       } else {
-        // let data = [];
-        // subGroup.map((group) => {
-        //   // console.log(group);
-        //   let sub_group_data = group.sub_group;
-        //   // console.log(sub_group_data);
-        //   sub_group_data.map((singleSubGroup) => {
-        //     // console.log(singleSubGroup._id);
-        //     const id = singleSubGroup._id;
-        //     console.log(id);
-        //     if (id === ) {
-        //       // data.push(singleSubGroup);
-        //       console.log("Okay");
-        //     }
-        //   });
-        // });
-        // console.log(data);
-        res.status(200).send(subGroup);
-        // res.status(200).send(data)
+        let data = [];
+        subGroup.map((group) => {
+          let sub_group_data = group.sub_group;
+          const group_title = group.group_title;
+          const group_id = group._id;
+          sub_group_data.map((singleSubGroup) => {
+            const id = singleSubGroup._id.toString();
+            if (id === sub_id) {
+              let newObject = {
+                group_title: group_title,
+                group_id: group_id,
+                sub_group_title: singleSubGroup.sub_group_title,
+                sub_group_task_list: singleSubGroup.sub_group_task_list,
+                _id: singleSubGroup._id,
+              };
+              data.push(newObject);
+            }
+          });
+        });
+
+        // res.status(200).send(subGroup);
+        res.status(200).send(data);
       }
     } catch (error) {
       console.log(error.message);
