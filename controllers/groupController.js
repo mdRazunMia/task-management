@@ -285,6 +285,7 @@ const getGroups = async (req, res) => {
 };
 const getSingleGroup = async (req, res) => {
   const id = req.params.id;
+  console.log("id: " + id);
   const sub_id = req.query.sub_id;
   const user_id = req.user.userId;
   if (id && sub_id) {
@@ -305,7 +306,7 @@ const getSingleGroup = async (req, res) => {
       if (!subGroup) {
         res.status(404).send({ message: "Group is not found." });
       } else {
-        let data = [];
+        let newObject = {};
         subGroup.map((group) => {
           let sub_group_data = group.sub_group;
           const group_title = group.group_title;
@@ -313,27 +314,24 @@ const getSingleGroup = async (req, res) => {
           sub_group_data.map((singleSubGroup) => {
             const id = singleSubGroup._id.toString();
             if (id === sub_id) {
-              let newObject = {
-                group_title: group_title,
-                group_id: group_id,
-                sub_group_title: singleSubGroup.sub_group_title,
-                sub_group_task_list: singleSubGroup.sub_group_task_list,
-                _id: singleSubGroup._id,
-              };
-              data.push(newObject);
+              (newObject.group_title = group_title),
+                (newObject.group_id = group_id),
+                (newObject.sub_group_title = singleSubGroup.sub_group_title),
+                (newObject.sub_group_task_list =
+                  singleSubGroup.sub_group_task_list),
+                (newObject._id = singleSubGroup._id);
             }
           });
         });
-
-        // res.status(200).send(subGroup);
-        res.status(200).send(data);
+        console.log(newObject);
+        res.status(200).send(newObject);
       }
     } catch (error) {
       console.log(error);
     }
   } else {
     try {
-      const group = await Group.find({ _id: id, user_id: user_id });
+      const group = await Group.findOne({ _id: id, user_id: user_id });
       if (!group) {
         res.status(404).send({ message: "Group is not found." });
       } else {

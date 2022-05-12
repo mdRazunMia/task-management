@@ -402,6 +402,7 @@ const deleteFromBoard = async (req, res) => {
   }
 };
 const getBoards = async (req, res) => {
+  const user_id = req.user.userId;
   try {
     const boardList = await Board.find({ user_id: user_id });
     if (!boardList) {
@@ -416,6 +417,7 @@ const getBoards = async (req, res) => {
 
 const getSingleBoard = async (req, res) => {
   const id = req.params.id;
+  const user_id = req.user.userId;
   try {
     const board = await Board.findOne({ _id: id, user_id: user_id });
     if (!board) {
@@ -487,6 +489,7 @@ const editBoard = async (req, res) => {
 
 const deleteSingleBoard = async (req, res) => {
   const id = req.params.id;
+  const user_id = req.user.userId;
   try {
     const deletedBoard = await Board.findOneAndDelete({
       _id: id,
