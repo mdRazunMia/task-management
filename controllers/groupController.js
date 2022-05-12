@@ -184,12 +184,16 @@ const addTaskToGroup = async (req, res) => {
   const group_id = req.params.group_id;
   const sub_group_id = req.params.sub_group_id;
   const task_id = req.query.taskId;
+  const userId = req.user.userId;
   // const task_title = req.body.task_title;
   let task_title;
   let user_id;
 
   try {
-    const singleTaskData = await Task.findOne({ _id: task_id });
+    const singleTaskData = await Task.findOne({
+      _id: task_id,
+      user_id: userId,
+    });
     task_title = singleTaskData.task_title;
     user_id = singleTaskData.user_id;
   } catch (error) {
@@ -198,18 +202,22 @@ const addTaskToGroup = async (req, res) => {
 
   var task_list = [];
   try {
-    const findNestedValue = await Group.findById(group_id, {
-      nested: 1,
-      _id: 0,
-    });
+    const findNestedValue = await Group.find(
+      { _id: group_id, user_id: userId },
+      {
+        nested: 1,
+        _id: 0,
+      }
+    );
     if (
       group_id &&
       sub_group_id !== "null" &&
       findNestedValue.nested === true
     ) {
-      const updatedSuperGroupTaskList = await Group.updateOne(
+      const updatedSuperGroupTaskList = await Group.findOneAndUpdate(
         {
           _id: group_id,
+          user_id: userId,
           "sub_group._id": sub_group_id,
         },
         {
@@ -240,7 +248,7 @@ const addTaskToGroup = async (req, res) => {
       });
       try {
         const updatedGroupTaskList = await Group.findOneAndUpdate(
-          { _id: group_id },
+          { _id: group_id, user_id: userId },
           { $push: { group_task_list: task_list } }
         );
         console.log(updatedGroupTaskList);
@@ -263,8 +271,9 @@ const addTaskToGroup = async (req, res) => {
 };
 
 const getGroups = async (req, res) => {
+  const user_id = req.user.userId;
   try {
-    const groupList = await Group.find({});
+    const groupList = await Group.find({ user_id: user_id });
     if (!groupList) {
       res.status(404).send({ message: "There is no group." });
     } else {
@@ -277,11 +286,13 @@ const getGroups = async (req, res) => {
 const getSingleGroup = async (req, res) => {
   const id = req.params.id;
   const sub_id = req.query.sub_id;
+  const user_id = req.user.userId;
   if (id && sub_id) {
     try {
       const subGroup = await Group.find(
         {
           _id: id,
+          user_id: user_id,
           "sub_group._id": sub_id,
         },
         {
@@ -322,7 +333,7 @@ const getSingleGroup = async (req, res) => {
     }
   } else {
     try {
-      const group = await Group.findById(id);
+      const group = await Group.find({ _id: id, user_id: user_id });
       if (!group) {
         res.status(404).send({ message: "Group is not found." });
       } else {
@@ -358,15 +369,16 @@ const editGroup = async (req, res) => {
 
     if (id && sub_id) {
       try {
-        const group = await Group.findById({
+        const group = await Group.findOneAndUpdate({
           _id: id,
+          user_id: user_id,
           "sub_group._id": sub_id,
         });
         if (!group) {
           return res.status(404).send({ msg: "Group does not exist." });
         } else {
           const updatedSubGroupTitle = await Group.updateOne(
-            { _id: id, "sub_group._id": sub_id },
+            { _id: id, user_id: user_id, "sub_group._id": sub_id },
             {
               "sub_group.$[].sub_group_title": value.group_title,
             }
@@ -387,7 +399,7 @@ const editGroup = async (req, res) => {
       }
     } else {
       try {
-        const group = await Group.findById(id);
+        const group = await Group.find({ _id: id, user_id: user_id });
         if (!group) {
           return res.status(404).send({ msg: "Group does not exist." });
         } else {
@@ -419,14 +431,21 @@ const editGroup = async (req, res) => {
 
 const deleteGroup = async (req, res) => {
   const id = req.params.id;
+  const user_id = req.user.userId;
   try {
-    const getNested = await Group.findById(id, { nested: 1 });
+    const getNested = await Group.find(
+      { _id: id, user_id: user_id },
+      { nested: 1 }
+    );
     const getNestedValue = getNested.nested;
     console.log(getNestedValue);
     if (getNestedValue === false) {
-      const findGroupTask = await Group.findById(id, {
-        group_task_list: 1,
-      });
+      const findGroupTask = await Group.find(
+        { _id: id, user_id: user_id },
+        {
+          group_task_list: 1,
+        }
+      );
       const groupTaskList = findGroupTask.group_task_list;
       var listOfTaskId = [];
       for (let i in groupTaskList) {
@@ -444,18 +463,24 @@ const deleteGroup = async (req, res) => {
         res.status(200).send({ ErrorMessage: "Tasks cannot be deleted." });
       }
     } else {
-      const findGroupTask = await Group.findById(id, {
-        group_task_list: 1,
-      });
+      const findGroupTask = await Group.find(
+        { _id: id, user_id: user_id },
+        {
+          group_task_list: 1,
+        }
+      );
       const groupTaskList = findGroupTask.group_task_list;
       var listOfGroupTaskId = [];
       for (let i in groupTaskList) {
         listOfGroupTaskId.push(groupTaskList[i].task_id);
       }
       console.log("Group task list: \n" + listOfGroupTaskId);
-      const findSuperGroupTask = await Group.findById(id, {
-        "super_group.super_group_task_list": 1,
-      });
+      const findSuperGroupTask = await Group.find(
+        { _id: id, user_id: user_id },
+        {
+          "super_group.super_group_task_list": 1,
+        }
+      );
       console.log("super group task object: \n" + findSuperGroupTask);
       const superGroupTaskList =
         findSuperGroupTask.super_group.super_group_task_list;
@@ -487,7 +512,10 @@ const deleteGroup = async (req, res) => {
       }
     }
 
-    const deletedGroup = await Group.findByIdAndDelete(id);
+    const deletedGroup = await Group.findOneAndDelete({
+      _id: id,
+      user_id: user_id,
+    });
     if (!deletedGroup)
       return res.status(404).json({ msg: "Group does not delete." });
     return res
