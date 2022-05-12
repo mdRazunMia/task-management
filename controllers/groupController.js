@@ -343,7 +343,70 @@ const getSingleGroup = async (req, res) => {
   }
 };
 
-const groupTaskComplete = async (req, res) => {};
+const groupTaskComplete = async (req, res) => {
+  const user_id = req.user.userId;
+  const group_id = req.params.group_id;
+  const sub_group_id = req.query.sub_group_id;
+  const task_id = req.query.task_id;
+  try {
+    if (group_id && sub_group_id) {
+      const updatedGroupTask = await Group.findOneAndUpdate(
+        {
+          _id: group_id,
+          "sub_group._id": sub_group_id,
+          "sub_group.sub_group_task_list": {
+            $elemMatch: {
+              _id: { $eq: task_id },
+            },
+          },
+        },
+        {
+          $set: {
+            "sub_group.$[].sub_group_task_list.$.task_complete": true,
+          },
+        }
+      );
+      if (!updatedGroupTask) {
+        res.status(500).send({
+          errorMessage:
+            "Something went wrong. Sub-group task has not been completed.",
+        });
+      } else {
+        res
+          .status(200)
+          .send({ message: "Sub-group task has been completed successfully." });
+      }
+    } else {
+      const updatedGroupTask = await Group.findOneAndUpdate(
+        {
+          _id: group_id,
+          group_task_list: {
+            $elemMatch: {
+              _id: { $eq: task_id },
+            },
+          },
+        },
+        {
+          $set: {
+            "group_task_list.$.task_complete": true,
+          },
+        }
+      );
+      if (!updatedGroupTask) {
+        res.status(500).send({
+          errorMessage:
+            "Something went wrong. Group task has not been completed.",
+        });
+      } else {
+        res
+          .status(200)
+          .send({ message: "Group task has been completed successfully." });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 const getGroupCompletedTasks = async (req, res) => {};
 

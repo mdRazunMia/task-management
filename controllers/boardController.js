@@ -418,6 +418,7 @@ const getBoards = async (req, res) => {
 const getSingleBoard = async (req, res) => {
   const id = req.params.id;
   const user_id = req.user.userId;
+  console.log(id);
   try {
     const board = await Board.findOne({ _id: id, user_id: user_id });
     if (!board) {
@@ -426,8 +427,7 @@ const getSingleBoard = async (req, res) => {
       res.status(200).send(board);
     }
   } catch (error) {
-    console.log(error.message);
-    res.send(error.message);
+    console.log(error);
   }
 };
 

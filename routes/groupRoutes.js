@@ -17,7 +17,7 @@ router.put(
 );
 
 router.put(
-  "/group-task-complete/:group_id/:sub_group_id",
+  "/group-task-complete/:group_id",
   authTokenVerify,
   groupController.groupTaskComplete
 );
