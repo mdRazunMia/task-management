@@ -23,7 +23,7 @@ router.put(
 );
 
 router.get(
-  "/get-group-complete-task/:group_id/:sub_group_id",
+  "/get-group-complete-task/:group_id",
   authTokenVerify,
   groupController.getGroupCompletedTasks
 );

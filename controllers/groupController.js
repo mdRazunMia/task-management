@@ -353,28 +353,7 @@ const groupTaskComplete = async (req, res) => {
       const updatedGroupTask = await Group.findOneAndUpdate(
         {
           _id: group_id,
-          // sub_group: {
-          //   $elemMatch: {
-          //     //try-1
-
-          //     // _id: { $eq: sub_group_id },
-          //     // "sub_group.sub_group_task_list": {
-          //     //   $elemMatch: {
-          //     //     _id: { $eq: task_id },
-          //     //   },
-          //     // },
-
-          //     // try-2
-          //     sub_group_task_list: {
-          //       $elemMatch: {
-          //         _id: { $eq: task_id },
-          //       },
-          //     },
-          //   },
-          // },
-          // "sub_group.sub_group_task_list": {
-          //   $elemMatch: { _id: { $eq: task_id } },
-          // },
+          user_id: user_id,
         },
         {
           $set: {
@@ -385,7 +364,6 @@ const groupTaskComplete = async (req, res) => {
           arrayFilters: [{ "e._id": sub_group_id }, { "s._id": task_id }],
         }
       );
-      console.log(updatedGroupTask);
       if (!updatedGroupTask) {
         res.status(500).send({
           errorMessage:
@@ -400,6 +378,7 @@ const groupTaskComplete = async (req, res) => {
       const updatedGroupTask = await Group.findOneAndUpdate(
         {
           _id: group_id,
+          user_id: user_id,
           group_task_list: {
             $elemMatch: {
               _id: { $eq: task_id },
@@ -428,7 +407,36 @@ const groupTaskComplete = async (req, res) => {
   }
 };
 
-const getGroupCompletedTasks = async (req, res) => {};
+const getGroupCompletedTasks = async (req, res) => {
+  const user_id = req.user.userId;
+  const group_id = req.params.group_id;
+  const sub_group_id = req.query.sub_group_id;
+  if (group_id && sub_group_id) {
+  } else {
+    try {
+      const getCompletedGroupTask = await Group.find(
+        {
+          user_id: user_id,
+          "user_task_list.task_complete": true,
+        },
+        { group_task_list: 1 }
+      );
+      if (!getCompletedGroupTask) {
+        res.status(500).send({
+          errorMessage:
+            "Something went wrong. Group tasks have not been founded.",
+        });
+      } else {
+        res.status(200).send({
+          message: "Group tasks have been fetched successfully.",
+          completed_tasks: getCompletedGroupTask,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+};
 
 const editGroup = async (req, res) => {
   const { error, value } = groupInputValidation.groupCreateInputValidation({
