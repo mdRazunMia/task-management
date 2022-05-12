@@ -247,7 +247,7 @@ const addToBoard = async (req, res) => {
   const board_column_id = req.query.column_id;
   const user_id = req.user.userId;
   try {
-    const findNestedValue = await Board.find(
+    const findNestedValue = await Board.findOne(
       { _id: board_id, user_id: user_id },
       {
         nested: 1,

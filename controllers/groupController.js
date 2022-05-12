@@ -202,7 +202,7 @@ const addTaskToGroup = async (req, res) => {
 
   var task_list = [];
   try {
-    const findNestedValue = await Group.find(
+    const findNestedValue = await Group.findOne(
       { _id: group_id, user_id: userId },
       {
         nested: 1,
