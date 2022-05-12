@@ -353,19 +353,39 @@ const groupTaskComplete = async (req, res) => {
       const updatedGroupTask = await Group.findOneAndUpdate(
         {
           _id: group_id,
-          "sub_group._id": sub_group_id,
-          "sub_group.sub_group_task_list": {
-            $elemMatch: {
-              _id: { $eq: task_id },
-            },
-          },
+          // sub_group: {
+          //   $elemMatch: {
+          //     //try-1
+
+          //     // _id: { $eq: sub_group_id },
+          //     // "sub_group.sub_group_task_list": {
+          //     //   $elemMatch: {
+          //     //     _id: { $eq: task_id },
+          //     //   },
+          //     // },
+
+          //     // try-2
+          //     sub_group_task_list: {
+          //       $elemMatch: {
+          //         _id: { $eq: task_id },
+          //       },
+          //     },
+          //   },
+          // },
+          // "sub_group.sub_group_task_list": {
+          //   $elemMatch: { _id: { $eq: task_id } },
+          // },
         },
         {
           $set: {
-            "sub_group.$[].sub_group_task_list.$.task_complete": true,
+            "sub_group.$[e].sub_group_task_list.$[s].task_complete": true,
           },
+        },
+        {
+          arrayFilters: [{ "e._id": sub_group_id }, { "s._id": task_id }],
         }
       );
+      console.log(updatedGroupTask);
       if (!updatedGroupTask) {
         res.status(500).send({
           errorMessage:
