@@ -135,8 +135,9 @@ const getGroupsAndTasks = async (req, res) => {
   var groupList = [];
   var taskList = [];
   var allTasksAndGroups = [];
+  const user_id = req.user.userId;
   try {
-    const getGroups = await Group.find();
+    const getGroups = await Group.find({ user_id: user_id });
     getGroups.map((group) => {
       var modifiedGroupObject = {
         group_id: group._id,
@@ -159,7 +160,7 @@ const getGroupsAndTasks = async (req, res) => {
   }
 
   try {
-    const getTasks = await Task.find();
+    const getTasks = await Task.find({ user_id: user_id });
     getTasks.map((task) => {
       var modifiedTaskObject = {
         task_id: task._id,
@@ -244,16 +245,21 @@ const addToBoard = async (req, res) => {
   const data = req.body;
   const board_id = req.params.id;
   const board_column_id = req.query.column_id;
+  const user_id = req.user.userId;
   try {
-    const findNestedValue = await Board.findById(board_id, {
-      nested: 1,
-      _id: 0,
-    });
+    const findNestedValue = await Board.find(
+      { _id: board_id, user_id: user_id },
+      {
+        nested: 1,
+        _id: 0,
+      }
+    );
     console.log(findNestedValue);
     if (findNestedValue.nested == true) {
       const updatedBoardColumn = await Board.updateOne(
         {
           _id: board_id,
+          user_id: user_id,
           "board_column._id": board_column_id,
         },
         {
@@ -282,7 +288,7 @@ const addToBoard = async (req, res) => {
       //   task_title: task_title,
       // });
       const updatedBoardColumn = await Board.findOneAndUpdate(
-        { _id: board_id },
+        { _id: board_id, user_id: user_id },
         // { $push: { task_list: task_list } }
         { $push: { task_list: data } }
       );
@@ -305,7 +311,7 @@ const deleteFromBoard = async (req, res) => {
   if (req.body.nested === true) {
     if (req.body.group === true) {
       const deletedItemFromBoard = await Board.updateOne(
-        { _id: board_id, "board_column._id": column_id },
+        { _id: board_id, user_id: user_id, "board_column._id": column_id },
         {
           $pull: {
             // "board_column.$[].board_column_task_list._id":  group_or_task_id
@@ -327,7 +333,7 @@ const deleteFromBoard = async (req, res) => {
       }
     } else {
       const deletedItemFromBoard = await Board.updateOne(
-        { _id: board_id, "board_column._id": column_id },
+        { _id: board_id, user_id: user_id, "board_column._id": column_id },
         {
           $pull: {
             // "board_column.$[].board_column_task_list._id":  group_or_task_id
@@ -397,7 +403,7 @@ const deleteFromBoard = async (req, res) => {
 };
 const getBoards = async (req, res) => {
   try {
-    const boardList = await Board.find({});
+    const boardList = await Board.find({ user_id: user_id });
     if (!boardList) {
       res.status(404).send({ message: "There is no Board." });
     } else {
@@ -411,7 +417,7 @@ const getBoards = async (req, res) => {
 const getSingleBoard = async (req, res) => {
   const id = req.params.id;
   try {
-    const board = await Board.findById(id);
+    const board = await Board.findOne({ _id: id, user_id: user_id });
     if (!board) {
       res.status(404).send({ message: "Board is not found." });
     } else {
@@ -444,8 +450,9 @@ const editBoard = async (req, res) => {
   } else {
     const id = req.params.id;
     const board_title = value.board_title;
+    const user_id = req.user.userId;
     try {
-      const board = await Board.findById(id);
+      const board = await Board.find({ _id: id, user_id: user_id });
       if (!board) {
         return res.status(404).send({ msg: "Board does not exist." });
       } else {
@@ -454,8 +461,8 @@ const editBoard = async (req, res) => {
             board_title: board_title,
           },
         };
-        const updatedBoard = await Board.findByIdAndUpdate(
-          { _id: id },
+        const updatedBoard = await Board.findOneAndUpdate(
+          { _id: id, user_id: user_id },
           updatedBoardInformation,
           {
             new: true,
@@ -481,7 +488,10 @@ const editBoard = async (req, res) => {
 const deleteSingleBoard = async (req, res) => {
   const id = req.params.id;
   try {
-    const deletedBoard = await Board.findByIdAndDelete(id);
+    const deletedBoard = await Board.findOneAndDelete({
+      _id: id,
+      user_id: user_id,
+    });
     if (!deletedBoard)
       return res.status(404).send({ msg: "Board does not exist." });
     return res
