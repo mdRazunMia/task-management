@@ -26,4 +26,10 @@ router.put(
   boardController.deleteFromBoard
 );
 
+router.put(
+  "/edit-column-name/:board_id/:board_column_id",
+  authTokenVerify,
+  boardController.editBoardColumnName
+);
+
 module.exports = router;

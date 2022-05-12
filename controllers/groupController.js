@@ -343,6 +343,10 @@ const getSingleGroup = async (req, res) => {
   }
 };
 
+const groupTaskComplete = async (req, res) => {};
+
+const getGroupCompletedTasks = async (req, res) => {};
+
 const editGroup = async (req, res) => {
   const { error, value } = groupInputValidation.groupCreateInputValidation({
     group_title: req.body.group_title,
@@ -531,4 +535,6 @@ module.exports = {
   editGroup,
   deleteGroup,
   addTaskToGroup,
+  groupTaskComplete,
+  getGroupCompletedTasks,
 };

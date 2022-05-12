@@ -505,6 +505,8 @@ const deleteSingleBoard = async (req, res) => {
   }
 };
 
+const editBoardColumnName = async (req, res) => {};
+
 module.exports = {
   createBoard,
   getBoards,
@@ -515,4 +517,5 @@ module.exports = {
   getGroupsAndTasks,
   addToBoard,
   deleteFromBoard,
+  editBoardColumnName,
 };

@@ -16,4 +16,16 @@ router.put(
   groupController.addTaskToGroup
 );
 
+router.put(
+  "/group-task-complete/:group_id/:sub_group_id",
+  authTokenVerify,
+  groupController.groupTaskComplete
+);
+
+router.get(
+  "/get-group-complete-task/:group_id/:sub_group_id",
+  authTokenVerify,
+  groupController.getGroupCompletedTasks
+);
+
 module.exports = router;
