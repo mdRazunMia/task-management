@@ -318,7 +318,7 @@ const getSingleGroup = async (req, res) => {
         res.status(200).send(data);
       }
     } catch (error) {
-      console.log(error.message);
+      console.log(error);
     }
   } else {
     try {
@@ -329,7 +329,7 @@ const getSingleGroup = async (req, res) => {
         res.status(200).send(group);
       }
     } catch (error) {
-      console.log(error.message);
+      console.log(error);
     }
   }
 };

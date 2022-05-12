@@ -143,6 +143,8 @@ const getGroupsAndTasks = async (req, res) => {
         group_title: group.group_title,
         group_task_list: group.group_task_list,
         nested: group.nested,
+        complete: false,
+        user_id: group.user_id,
       };
       if (group.nested === true) {
         modifiedGroupObject.sub_group = JSON.parse(
@@ -163,6 +165,8 @@ const getGroupsAndTasks = async (req, res) => {
         task_id: task._id,
         task_title: task.task_title,
         task: true,
+        complete: false,
+        user_id: task.user_id,
       };
       taskList.push(modifiedTaskObject);
     });
