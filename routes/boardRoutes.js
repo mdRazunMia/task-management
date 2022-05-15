@@ -32,4 +32,10 @@ router.put(
   boardController.editBoardColumnName
 );
 
+router.put(
+  "/move-from-board/:board_id",
+  authTokenVerify,
+  boardController.moveFromBoard
+);
+
 module.exports = router;

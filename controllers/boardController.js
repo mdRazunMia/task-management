@@ -258,7 +258,7 @@ const addToBoard = async (req, res) => {
       }
     );
     console.log(findNestedValue);
-    if (findNestedValue.nested == true) {
+    if (findNestedValue.nested == true && board_id && board_column_id) {
       const updatedBoardColumn = await Board.updateOne(
         {
           _id: board_id,
@@ -418,10 +418,28 @@ const getBoards = async (req, res) => {
   }
 };
 
+const moveFromBoard = async (req, res) => {
+  const board_id = req.params.id;
+  const column_id = req.query.column_id;
+  const task_id = req.query.task_id;
+  const user_id = req.user.userId;
+  if (board_id && column_id) {
+    try {
+      const updatedColumnTask = await Board.findOneAndUpdate({
+        _id: board_id,
+        user_id: user_id,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  } else {
+  }
+};
+
 const getSingleBoard = async (req, res) => {
   const id = req.params.id;
+  // console.log("Single board id: " + id);
   const user_id = req.user.userId;
-  console.log(id);
   try {
     const board = await Board.findOne({ _id: id, user_id: user_id });
     if (!board) {
@@ -521,4 +539,5 @@ module.exports = {
   addToBoard,
   deleteFromBoard,
   editBoardColumnName,
+  moveFromBoard,
 };
