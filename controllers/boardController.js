@@ -160,7 +160,10 @@ const getGroupsAndTasks = async (req, res) => {
   }
 
   try {
-    const getTasks = await Task.find({ user_id: user_id });
+    const getTasks = await Task.find({
+      user_id: user_id,
+      task_complete: false,
+    });
     getTasks.map((task) => {
       var modifiedTaskObject = {
         task_id: task._id,

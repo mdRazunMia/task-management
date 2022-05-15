@@ -412,31 +412,113 @@ const getGroupCompletedTasks = async (req, res) => {
   const group_id = req.params.group_id;
   const sub_group_id = req.query.sub_group_id;
   if (group_id && sub_group_id) {
-  } else {
+    var AllSubGroupTasks = [];
     try {
-      const getCompletedGroupTask = await Group.find(
+      const getCompletedGroupTask = await Group.findOne(
         {
           user_id: user_id,
-          "user_task_list.task_complete": true,
+          "sub_group._id": sub_group_id,
+          "sub_group.$[].sub_group_task_list.$[].task_complete": true,
         },
-        { group_task_list: 1 }
+        { "sub_group.sub_group_task_list": 1 }
       );
       if (!getCompletedGroupTask) {
         res.status(500).send({
           errorMessage:
-            "Something went wrong. Group tasks have not been founded.",
+            "Something went wrong. Group tasks have not been found.",
         });
       } else {
-        res.status(200).send({
-          message: "Group tasks have been fetched successfully.",
-          completed_tasks: getCompletedGroupTask,
-        });
+        const sub_group = getCompletedGroupTask.sub_group;
+        if (sub_group && sub_group.length > 0) {
+          sub_group.map((group) => {
+            const sub_group_tasks = group.sub_group_task_list;
+            if (sub_group_tasks && sub_group_tasks.length > 0) {
+              sub_group_tasks.map((taskObject) => {
+                if (taskObject.task_complete) {
+                  AllSubGroupTasks.push(taskObject);
+                }
+              });
+            }
+          });
+        }
+        res.status(200).send({ tasks: AllSubGroupTasks });
       }
+    } catch (error) {
+      console.log(error);
+    }
+  } else {
+    let allGroupCompletedTasks = [];
+    try {
+      const getCompletedGroupTasks = await Group.findOne(
+        {
+          user_id: user_id,
+          "group_task_list.task_complete": true,
+        },
+        { group_task_list: 1 }
+      );
+      if (!getCompletedGroupTasks) {
+        res.status(500).send({
+          errorMessage:
+            "Something went wrong. Group tasks have not been found.",
+        });
+      } else {
+        const group_tasks = getCompletedGroupTasks.group_task_list;
+        if (group_tasks && group_tasks.length > 0) {
+          group_tasks.map((task) => {
+            if (task.task_complete) {
+              allGroupCompletedTasks.push(task);
+            }
+          });
+        }
+      }
+      res.status(200).send({ tasks: allGroupCompletedTasks });
     } catch (error) {
       console.log(error);
     }
   }
 };
+
+// const getGroupCompletedTasks = async (req, res) => {
+//   const user_id = req.user.userId;
+//   const group_id = req.params.group_id;
+//   const sub_group_id = req.query.sub_group_id;
+//   let group_completed_tasks = [];
+//   let sub_group_completed_tasks = [];
+//   try {
+//     const getCompletedTasks = await Group.findOne({
+//       user_id: user_id,
+//       _id: group_id,
+//     });
+//     if (!getCompletedTasks) {
+//       res.status(500).send({
+//         errorMessage: "Something went wrong. Group has not been found.",
+//       });
+//     } else {
+//       const group_tasks = getCompletedTasks.group_task_list;
+//       const sub_groups = getCompletedTasks.sub_group;
+//       if (group_tasks.length > 0) {
+//         group_tasks.map((task) => {
+//           if (task.task_complete === true) {
+//             group_completed_tasks.push(task);
+//           }
+//         });
+//       }
+
+//       sub_groups.map((sub_group) => {
+//         // console.log(sub_group);
+//         const sub_group_tasks = sub_group.sub_group_task_list;
+//         sub_group_tasks.map((task) => {
+//           if (task.task_complete === true) {
+//             console.log(task);
+//             // sub_group_completed_tasks.push(task);
+//           }
+//         });
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
 
 const editGroup = async (req, res) => {
   const { error, value } = groupInputValidation.groupCreateInputValidation({
