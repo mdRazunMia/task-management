@@ -38,4 +38,16 @@ router.put(
   boardController.moveFromBoard
 );
 
+router.put(
+  "/move-to-group/:group_id",
+  authTokenVerify,
+  boardController.moveToGroupOrSubGroup
+);
+
+router.put(
+  "/single-task-move-from-board/:board_id",
+  authTokenVerify,
+  boardController.singleTaskMoveFromBroad
+);
+
 module.exports = router;

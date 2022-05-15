@@ -425,16 +425,80 @@ const moveFromBoard = async (req, res) => {
   const user_id = req.user.userId;
   if (board_id && column_id) {
     try {
-      const updatedColumnTask = await Board.findOneAndUpdate({
-        _id: board_id,
-        user_id: user_id,
-      });
+      const updatedColumnTask = await Board.findOneAndUpdate(
+        {
+          _id: board_id,
+          user_id: user_id,
+          "board_column._id": column_id,
+        },
+        {
+          $pull: {
+            "board_column.board_column_task_list.$[e]._id": task_id,
+          },
+        },
+        {
+          arrayFilters: [{ "e._id": task_id }],
+        }
+      );
+      if (!updatedColumnTask) {
+        res
+          .status(404)
+          .send({ errorMessage: "Something went wrong. Task is not found." });
+      } else {
+        res.status(200).send(updatedColumnTask);
+      }
     } catch (error) {
       console.log(error);
     }
   } else {
   }
 };
+
+const moveToGroupOrSubGroup = async (req, res) => {
+  const group_id = req.params.group_id;
+  const sub_group_id = req.query.sub_group_id;
+  const task_id = req.query.task_id;
+  const user_id = req.user.userId;
+  if (group_id && sub_group_id) {
+  } else {
+  }
+};
+
+// Pull single board task to the group or sub-group of that board
+const singleTaskMoveFromBroad = async (req, res) => {
+  const board_id = req.params.board_id;
+  const user_id = req.user.userId;
+  const bol_task = req.query.task;
+  const bol_group = req.query.group;
+  if (board_id && bol_task && user_id) {
+    const task_id = req.query.task_id;
+    try {
+      const updatedBoardData = await Board.findOneAndUpdate(
+        { _id: board_id, user_id: user_id, "task_list.task_id": task_id },
+        {
+          $pull: {
+            task_list: { task_id: task_id },
+          },
+        }
+        // { arrayFilters: [{ "s.task_id": task_id }] }
+      );
+      if (!updatedBoardData) {
+        res.status(404).send({ errorMessage: "Board is not found." });
+      } else {
+        res.status(200).send({
+          message: "Task has been pulled successfully from the board.",
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  } else {
+    const group_id = req.query.group_id;
+  }
+};
+
+// Push single board task to the group or sub-group of that board
+const singleTaskMoveToBoardGroupFromBoard = async (req, res) => {};
 
 const getSingleBoard = async (req, res) => {
   const id = req.params.id;
@@ -540,4 +604,6 @@ module.exports = {
   deleteFromBoard,
   editBoardColumnName,
   moveFromBoard,
+  moveToGroupOrSubGroup,
+  singleTaskMoveFromBroad,
 };
