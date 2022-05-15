@@ -480,13 +480,13 @@ const singleTaskMoveFromBroad = async (req, res) => {
             task_list: { task_id: task_id },
           },
         }
-        // { arrayFilters: [{ "s.task_id": task_id }] }
       );
       if (!updatedBoardData) {
         res.status(404).send({ errorMessage: "Board is not found." });
       } else {
         res.status(200).send({
           message: "Task has been pulled successfully from the board.",
+          updatedTask: updatedBoardData,
         });
       }
     } catch (error) {
@@ -494,6 +494,26 @@ const singleTaskMoveFromBroad = async (req, res) => {
     }
   } else {
     const group_id = req.query.group_id;
+    try {
+      const updatedBoardData = await Board.findOneAndUpdate(
+        { _id: board_id, user_id: user_id, "task_list.group_id": group_id },
+        {
+          $pull: {
+            task_list: { group_id: group_id },
+          },
+        }
+      );
+      if (!updatedBoardData) {
+        res.status(404).send({ errorMessage: "Board is not found." });
+      } else {
+        res.status(200).send({
+          message: "Group has been pulled successfully from the board.",
+          updatedTask: updatedBoardData,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
 };
 
