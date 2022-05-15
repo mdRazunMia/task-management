@@ -285,7 +285,6 @@ const getGroups = async (req, res) => {
 };
 const getSingleGroup = async (req, res) => {
   const id = req.params.id;
-  console.log("id: " + id);
   const sub_id = req.query.sub_id;
   const user_id = req.user.userId;
   if (id && sub_id) {
@@ -307,22 +306,27 @@ const getSingleGroup = async (req, res) => {
         res.status(404).send({ message: "Group is not found." });
       } else {
         let newObject = {};
-        subGroup.map((group) => {
-          let sub_group_data = group.sub_group;
-          const group_title = group.group_title;
-          const group_id = group._id;
-          sub_group_data.map((singleSubGroup) => {
-            const id = singleSubGroup._id.toString();
-            if (id === sub_id) {
-              (newObject.group_title = group_title),
-                (newObject.group_id = group_id),
-                (newObject.sub_group_title = singleSubGroup.sub_group_title),
-                (newObject.sub_group_task_list =
-                  singleSubGroup.sub_group_task_list),
-                (newObject._id = singleSubGroup._id);
+        if (subGroup && subGroup.length > 0) {
+          subGroup.map((group) => {
+            let sub_group_data = group.sub_group;
+            const group_title = group.group_title;
+            const group_id = group._id;
+            if (sub_group_data && sub_group_data.length > 0) {
+              sub_group_data.map((singleSubGroup) => {
+                const id = singleSubGroup._id.toString();
+                if (id === sub_id) {
+                  (newObject.group_title = group_title),
+                    (newObject.group_id = group_id),
+                    (newObject.sub_group_title =
+                      singleSubGroup.sub_group_title),
+                    (newObject.sub_group_task_list =
+                      singleSubGroup.sub_group_task_list),
+                    (newObject._id = singleSubGroup._id);
+                }
+              });
             }
           });
-        });
+        }
         console.log(newObject);
         res.status(200).send(newObject);
       }
