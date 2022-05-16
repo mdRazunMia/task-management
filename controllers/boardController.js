@@ -417,7 +417,7 @@ const getBoards = async (req, res) => {
     console.log(error.message);
   }
 };
-
+//have to discuss
 const moveFromBoard = async (req, res) => {
   const board_id = req.params.id;
   const column_id = req.query.column_id;
@@ -453,7 +453,7 @@ const moveFromBoard = async (req, res) => {
   } else {
   }
 };
-
+//have to discuss
 const moveToGroupOrSubGroup = async (req, res) => {
   const group_id = req.params.group_id;
   const sub_group_id = req.query.sub_group_id;
@@ -542,12 +542,10 @@ const singleTaskMoveToBoardGroupFromBoard = async (req, res) => {
           errorMessage: "Item has not been added to the board column.",
         });
       } else {
-        res
-          .status(200)
-          .send({
-            message: "Item has been added to the board column.",
-            data: updatedBoardColumn,
-          });
+        res.status(200).send({
+          message: "Item has been added to the board column.",
+          data: updatedBoardColumn,
+        });
       }
     }
     // else {
