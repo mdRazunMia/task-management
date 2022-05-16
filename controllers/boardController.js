@@ -518,7 +518,60 @@ const singleTaskMoveFromBroad = async (req, res) => {
 };
 
 // Push single board task to the group or sub-group of that board
-const singleTaskMoveToBoardGroupFromBoard = async (req, res) => {};
+const singleTaskMoveToBoardGroupFromBoard = async (req, res) => {
+  const board_id = req.params.board_id;
+  const column_id = req.query.column_id;
+  const user_id = req.user.userId;
+  const pushed_item = req.body;
+  try {
+    const getNestedValue = await Board.findOne(
+      { _id: board_id, user_id: user_id },
+      { nested: 1 }
+    );
+    if (getNestedValue.nested === true && column_id && board_id) {
+      const updatedBoardColumn = await Board.findOneAndUpdate(
+        { _id: board_id, user_id: user_id, "board_column._id": column_id },
+        {
+          $push: {
+            "board_column.$[].board_column_task_list": pushed_item,
+          },
+        }
+      );
+      if (!updatedBoardColumn) {
+        res.status(400).send({
+          errorMessage: "Item has not been added to the board column.",
+        });
+      } else {
+        res
+          .status(200)
+          .send({
+            message: "Item has been added to the board column.",
+            data: updatedBoardColumn,
+          });
+      }
+    }
+    // else {
+    //   console.log(pushed_item);
+    //   const updatedBoardColumn = await Board.findOneAndUpdate(
+    //     { _id: board_id, user_id: user_id },
+    //     {
+    //       $push: {
+    //         task_list: pushed_item,
+    //       },
+    //     }
+    //   );
+    //   if (!updatedBoardColumn) {
+    //     res
+    //       .status(400)
+    //       .send({ errorMessage: "Item has not been added to the board." });
+    //   } else {
+    //     res.status(200).send(updatedBoardColumn);
+    //   }
+    // }
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 const getSingleBoard = async (req, res) => {
   const id = req.params.id;
@@ -626,4 +679,5 @@ module.exports = {
   moveFromBoard,
   moveToGroupOrSubGroup,
   singleTaskMoveFromBroad,
+  singleTaskMoveToBoardGroupFromBoard,
 };

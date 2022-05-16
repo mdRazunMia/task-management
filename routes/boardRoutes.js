@@ -50,4 +50,10 @@ router.put(
   boardController.singleTaskMoveFromBroad
 );
 
+router.put(
+  "/single-task-move-to-board-group/:board_id",
+  authTokenVerify,
+  boardController.singleTaskMoveToBoardGroupFromBoard
+);
+
 module.exports = router;
