@@ -735,7 +735,7 @@ const editBoard = async (req, res) => {
 
 const editBoardBySocket = async (io, board_data) => {
   const { error, value } = boardInputValidation.boardCreateInputValidation({
-    board_title: board_data.data.boardName,
+    board_title: board_data.boardName,
   });
   if (error) {
     const errors = [];
