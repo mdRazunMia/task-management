@@ -777,6 +777,7 @@ const editBoardBySocket = async (io, board_data) => {
         } else {
           io.emit("editBoard", {
             message: "Board has been updated successfully.",
+            updatedBoard,
           });
         }
       }
