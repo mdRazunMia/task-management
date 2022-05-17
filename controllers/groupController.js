@@ -180,6 +180,81 @@ const createGroup = async (req, res) => {
   }
 };
 
+const createGroupBySocket = async (io, group_data) => {
+  const { error, value } = groupInputValidation.groupCreateInputValidation({
+    group_title: group_data.data.group_title,
+  });
+  if (error) {
+    const errors = [];
+    error.details.forEach((detail) => {
+      const currentMessage = detail.message;
+      detail.path.forEach((value) => {
+        logger.log({
+          level: "error",
+          message: `${currentMessage} | Code: 1-1`,
+        });
+        errors.push({ [value]: currentMessage });
+      });
+    });
+    // res.status(422).send({ message: error.details[0].message });
+    res.status(422).send(errors);
+  } else {
+    const user_id = group_data.userId;
+    if (group_data.data.nested == true) {
+      const super_group_id = group_data.data.super_group_id;
+      const sub_group_title = value.group_title;
+      try {
+        const updatedSubGroupList = await Group.findByIdAndUpdate(
+          {
+            _id: super_group_id,
+          },
+          {
+            nested: true,
+            $push: {
+              sub_group: {
+                sub_group_title: sub_group_title,
+                sub_group_task_list: [],
+              },
+            },
+          }
+        );
+        if (updatedSubGroupList) {
+          io.emit("createGroup", {
+            message: "sub-group has been added to the super-group",
+          });
+        } else {
+          io.emit("createGroup", {
+            errorMessage: "sub-group has not been added to the super-group",
+          });
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    } else {
+      const groupObject = {
+        group_title: value.group_title,
+        nested: group_data.data.nested,
+        user_id: user_id,
+      };
+      try {
+        const group = new Group(groupObject);
+        const saveGroup = await group.save();
+        if (!saveGroup) {
+          io.emit("createGroup", {
+            errorMessage: "Something went wrong. Group does not created.",
+          });
+        } else {
+          io.emit("createGroup", {
+            message: "Group has been created successfully.",
+          });
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    }
+  }
+};
+
 const addTaskToGroup = async (req, res) => {
   const group_id = req.params.group_id;
   const sub_group_id = req.params.sub_group_id;
@@ -283,6 +358,21 @@ const getGroups = async (req, res) => {
     console.log(error.message);
   }
 };
+
+const getGroupsBySocket = async (io, group_data) => {
+  const user_id = group_data.userId;
+  try {
+    const groupList = await Group.find({ user_id: user_id });
+    if (!groupList) {
+      io.emit("getGroups", { errorMessage: "There is no group." });
+    } else {
+      io.emit("getGroups", groupList);
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
 const getSingleGroup = async (req, res) => {
   const id = req.params.id;
   const sub_id = req.query.sub_id;
@@ -714,4 +804,6 @@ module.exports = {
   addTaskToGroup,
   groupTaskComplete,
   getGroupCompletedTasks,
+  getGroupsBySocket,
+  createGroupBySocket,
 };

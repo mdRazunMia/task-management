@@ -41,6 +41,7 @@ function expressServerApp() {
   const linkedinLoginRoute = require("./routes/linkedinRoute");
 
   const taskController = require("./controllers/taskController");
+  const groupController = require("./controllers/groupController");
 
   const passport = require("passport");
   const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
@@ -147,6 +148,13 @@ function expressServerApp() {
 
     socket.on("getCompletedTasks", (data) => {
       taskController.getCompletedTasksBySocket(io, data);
+    });
+
+    socket.on("getGroups", (data) => {
+      groupController.getGroupsBySocket(io, data);
+    });
+    socket.on("createGroup", (data) => {
+      groupController.createGroupBySocket(io, data);
     });
   });
   server.listen(process.env.PORT, () => {
