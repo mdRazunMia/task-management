@@ -135,6 +135,15 @@ function expressServerApp() {
     socket.on("getTasks", (data) => {
       taskController.getTasksBySocket(io, data);
     });
+    socket.on("deleteTask", (data) => {
+      taskController.deleteSingleTaskBySocket(io, data);
+    });
+    socket.on("completedTask", (data) => {
+      taskController.completedTaskBySocket(io, data);
+    });
+    socket.on("getCompletedTasks", (data) => {
+      taskController.getCompletedTasksBySocket(io, data);
+    });
   });
   server.listen(process.env.PORT, () => {
     console.log(

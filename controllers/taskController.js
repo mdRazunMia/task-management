@@ -203,6 +203,24 @@ const deleteSingleTask = async (req, res) => {
   }
 };
 
+const deleteSingleTaskBySocket = async (io, task_data) => {
+  const id = task_data.id;
+  const user_id = task_data.userId;
+  try {
+    const deletedTask = await Task.findOneAndDelete({
+      _id: id,
+      user_id: user_id,
+    });
+    if (!deletedTask) {
+      io.emit("deleteTask", { errorMessage: "Task does not deleted." });
+    } else {
+      io.emit("deleteTask", { message: "Task has been deleted successfully." });
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
 const completedTask = async (req, res) => {
   const task_id = req.params.id;
   const user_id = req.user.userId;
@@ -228,6 +246,30 @@ const completedTask = async (req, res) => {
   }
 };
 
+const completedTaskBySocket = async (io, task_data) => {
+  const task_id = task_data.id;
+  const user_id = task_data.userId;
+  const findTask = await Task.findOne({ _id: task_id, user_id: user_id });
+  if (!findTask) {
+    io.emit("completedTask", { errorMessage: "Task is not available" });
+  } else {
+    const updatedTask = await Task.findOneAndUpdate(
+      { _id: task_id, user_id: user_id },
+      { task_complete: true }
+    );
+    if (!updatedTask) {
+      io.emit("completedTask", {
+        errorMessage: "Something went wrong. Task has  not been updated.",
+      });
+    } else {
+      const allTask = await Task.find({ task_complete: false });
+      io.emit("completedTask", {
+        tasks: allTask,
+      });
+    }
+  }
+};
+
 const getCompletedTasks = async (req, res) => {
   const user_id = req.user.userId;
   try {
@@ -247,6 +289,28 @@ const getCompletedTasks = async (req, res) => {
   }
 };
 
+const getCompletedTasksBySocket = async (io, task_data) => {
+  const user_id = task_data.userId;
+  try {
+    const allCompletedTask = await Task.find({
+      task_complete: true,
+      user_id: user_id,
+    }).sort({
+      updatedAt: -1,
+    });
+    if (!allCompletedTask) {
+      io.emit("getCompletedTasks", {
+        errorMessage: "There is no completed task.",
+      });
+    } else {
+      // res.status(200).send(allCompletedTask);
+      io.emit("getCompletedTasks", allCompletedTask);
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
 module.exports = {
   createTask,
   getTasks,
@@ -257,4 +321,7 @@ module.exports = {
   getCompletedTasks,
   createTaskBySocket,
   getTasksBySocket,
+  deleteSingleTaskBySocket,
+  completedTaskBySocket,
+  getCompletedTasksBySocket,
 };
