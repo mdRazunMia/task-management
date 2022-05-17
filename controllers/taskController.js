@@ -1,7 +1,7 @@
 const Task = require("../models/taskModel");
 const taskInputValidation = require("../validations/taskInputValidation");
 const logger = require("../logger/logger");
-const io = require("socket.io");
+// const io = require("socket.io");
 
 const createTask = async (req, res) => {
   const { error, value } = taskInputValidation.taskCreateInputValidation({
@@ -33,21 +33,47 @@ const createTask = async (req, res) => {
           errorMessage: "Something went wrong. Task does not created.",
         });
       } else {
-        // const allTasks = await Task.find({ task_complete: false });
-        // let allTaskList = [];
-        // allTaskList = [...allTasks, saveTask];
-        // req.io.on("connection", (socket) => {
-        //   console.log("from get task");
-        //   socket.on("get-tasks", () => {
-        //     console.log(allTasks);
-        //     req.io.emit("all-tasks", allTaskList);
-        //   });
-        // });
-        // console.log(saveTask);
         res.status(201).send({
           message: "Task has been created successfully.",
           task: saveTask,
         });
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+};
+
+const createTaskBySocket = async (io, task_data) => {
+  console.log(task_data);
+  const { error, value } = taskInputValidation.taskCreateInputValidation({
+    task_title: task_data.taskTitle,
+  });
+  if (error) {
+    const errors = [];
+    error.details.forEach((detail) => {
+      const currentMessage = detail.message;
+      detail.path.forEach((value) => {
+        logger.log({
+          level: "error",
+          message: `${currentMessage} | Code: 1-1`,
+        });
+        errors.push({ [value]: currentMessage });
+      });
+    });
+
+    io.emit("addTask", { errorMessage: "Task is not created." });
+  } else {
+    const task = new Task({
+      task_title: value.task_title,
+      user_id: task_data.userId,
+    });
+    try {
+      const saveTask = await task.save();
+      if (!saveTask) {
+        io.emit("addTask", { errorMessage: "Task is not created." });
+      } else {
+        io.emit("addTask", saveTask);
       }
     } catch (error) {
       console.log(error.message);
@@ -68,6 +94,26 @@ const getTasks = async (req, res) => {
       res.status(404).send({ message: "There is no task." });
     } else {
       res.status(200).send(taskList);
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+const getTasksBySocket = async (io, task_data) => {
+  const user_id = task_data.userId;
+  try {
+    const taskList = await Task.find({
+      task_complete: false,
+      user_id: user_id,
+    }).sort({
+      createdAt: 1,
+    });
+    if (!taskList) {
+      // res.status(404).send({ message: "There is no task." });
+      io.emit("getTasks", { errorMessage: "There is no task." });
+    } else {
+      // res.status(200).send(taskList);
+      io.emit("getTasks", taskList);
     }
   } catch (error) {
     console.log(error.message);
@@ -209,4 +255,6 @@ module.exports = {
   deleteSingleTask,
   completedTask,
   getCompletedTasks,
+  createTaskBySocket,
+  getTasksBySocket,
 };

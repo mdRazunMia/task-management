@@ -40,6 +40,8 @@ function expressServerApp() {
   const googleLoginRoute = require("./routes/googleLoginRoute");
   const linkedinLoginRoute = require("./routes/linkedinRoute");
 
+  const taskController = require("./controllers/taskController");
+
   const passport = require("passport");
   const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
 
@@ -125,10 +127,15 @@ function expressServerApp() {
   app.use("/user", userRoute);
   app.use("/auth", googleLoginRoute);
   app.use("/auth", linkedinLoginRoute);
-  // io.on("connection", (socket) => {
-  //   console.log("socket connection has been established.");
-  //   // io.emit("hello", "This is a welcome message.");
-  // });
+  io.on("connection", (socket) => {
+    console.log("socket connection has been established.");
+    socket.on("addTask", (data) => {
+      taskController.createTaskBySocket(io, data);
+    });
+    socket.on("getTasks", (data) => {
+      taskController.getTasksBySocket(io, data);
+    });
+  });
   server.listen(process.env.PORT, () => {
     console.log(
       `task-management server is running on prot : ${process.env.PORT}`
