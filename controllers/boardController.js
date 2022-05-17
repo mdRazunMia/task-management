@@ -131,6 +131,81 @@ const createBoard = async (req, res) => {
   }
 };
 
+const createBoardBySocket = async (io, board_data) => {
+  const { error, value } = boardInputValidation.boardCreateInputValidation({
+    board_title: board_data.data.board_title,
+  });
+  if (error) {
+    const errors = [];
+    error.details.forEach((detail) => {
+      const currentMessage = detail.message;
+      detail.path.forEach((value) => {
+        logger.log({
+          level: "error",
+          message: `${currentMessage} | Code: 1-1`,
+        });
+        errors.push({ [value]: currentMessage });
+      });
+    });
+    // res.status(422).send({ message: error.details[0].message });
+    res.status(422).send(errors);
+  } else {
+    const user_id = board_data.userId;
+    if (board_data.data.nested == true) {
+      const board_id = board_data.data.board_id;
+      const board_column_title = value.board_title;
+      try {
+        const updatedBoardColumnList = await Board.findByIdAndUpdate(
+          {
+            _id: board_id,
+          },
+          {
+            nested: true,
+            $push: {
+              board_column: {
+                board_column_title: board_column_title,
+                board_column_task_list: [],
+              },
+            },
+          }
+        );
+        if (updatedBoardColumnList) {
+          io.emit("createBoard", {
+            message: "Column has been added to the board.",
+          });
+        } else {
+          io.emit("createBoard", {
+            errorMessage: "Column has not been added to the board.",
+          });
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    } else {
+      const boardObject = {
+        board_title: value.board_title,
+        nested: board_data.data.nested,
+        user_id: user_id,
+      };
+      try {
+        const board = new Board(boardObject);
+        const saveBoard = await board.save();
+        if (!saveBoard) {
+          io.emit("createBoard", {
+            errorMessage: "Something went wrong. Board does not created.",
+          });
+        } else {
+          io.emit("createBoard", {
+            message: "Board has been created successfully.",
+          });
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    }
+  }
+};
+
 const getGroupsAndTasks = async (req, res) => {
   var groupList = [];
   var taskList = [];
@@ -417,6 +492,21 @@ const getBoards = async (req, res) => {
     console.log(error.message);
   }
 };
+
+const getBoardsBySocket = async (io, board_data) => {
+  const user_id = board_data.userId;
+  try {
+    const boardList = await Board.find({ user_id: user_id });
+    if (!boardList) {
+      io.emit("getBoards", { errorMessage: "There is no Board" });
+    } else {
+      io.emit("getBoards", boardList);
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
 //have to discuss
 const moveFromBoard = async (req, res) => {
   const board_id = req.params.id;
@@ -643,6 +733,59 @@ const editBoard = async (req, res) => {
   }
 };
 
+const editBoardBySocket = async (io, board_data) => {
+  const { error, value } = boardInputValidation.boardCreateInputValidation({
+    board_title: board_data.data.boardName,
+  });
+  if (error) {
+    const errors = [];
+    error.details.forEach((detail) => {
+      const currentMessage = detail.message;
+      detail.path.forEach((value) => {
+        logger.log({
+          level: "error",
+          message: `${currentMessage} | Code: 1-1`,
+        });
+        errors.push({ [value]: currentMessage });
+      });
+    });
+    io.emit("editBoard", { errorMessage: errors });
+  } else {
+    const id = board_data.id;
+    const board_title = value.board_title;
+    const user_id = board_data.userId;
+    try {
+      const board = await Board.find({ _id: id, user_id: user_id });
+      if (!board) {
+        io.emit("editBoard", { errorMessage: "Board does not exist." });
+      } else {
+        const updatedBoardInformation = {
+          $set: {
+            board_title: board_title,
+          },
+        };
+        const updatedBoard = await Board.findOneAndUpdate(
+          { _id: id, user_id: user_id },
+          updatedBoardInformation,
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+        if (!updatedBoard) {
+          io.emit("editBoard", { errorMessage: "Board does not updated." });
+        } else {
+          io.emit("editBoard", {
+            message: "Board has been updated successfully.",
+          });
+        }
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+};
+
 const deleteSingleBoard = async (req, res) => {
   const id = req.params.id;
   const user_id = req.user.userId;
@@ -678,4 +821,7 @@ module.exports = {
   moveToGroupOrSubGroup,
   singleTaskMoveFromBroad,
   singleTaskMoveToBoardGroupFromBoard,
+  createBoardBySocket,
+  getBoardsBySocket,
+  editBoardBySocket,
 };

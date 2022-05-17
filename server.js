@@ -42,6 +42,7 @@ function expressServerApp() {
 
   const taskController = require("./controllers/taskController");
   const groupController = require("./controllers/groupController");
+  const boardController = require("./controllers/boardController");
 
   const passport = require("passport");
   const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
@@ -155,6 +156,16 @@ function expressServerApp() {
     });
     socket.on("createGroup", (data) => {
       groupController.createGroupBySocket(io, data);
+    });
+
+    socket.on("createBoard", (data) => {
+      boardController.createBoardBySocket(io, data);
+    });
+    socket.on("getBoards", (data) => {
+      boardController.getBoardsBySocket(io, data);
+    });
+    socket.on("editBoard", (data) => {
+      boardController.editBoardBySocket(io, data);
     });
   });
   server.listen(process.env.PORT, () => {
