@@ -128,7 +128,6 @@ function expressServerApp() {
   app.use("/auth", googleLoginRoute);
   app.use("/auth", linkedinLoginRoute);
   io.on("connection", (socket) => {
-    console.log("socket connection has been established.");
     socket.on("addTask", (data) => {
       taskController.createTaskBySocket(io, data);
     });
@@ -138,9 +137,14 @@ function expressServerApp() {
     socket.on("deleteTask", (data) => {
       taskController.deleteSingleTaskBySocket(io, data);
     });
-    socket.on("completedTask", (data) => {
-      taskController.completedTaskBySocket(io, data);
+    // socket.on("completedTask", (data) => {
+    //   taskController.completedTaskBySocket(io, data);
+    // });
+
+    socket.on("editTask", (data) => {
+      taskController.editTaskBySocket(io, data);
     });
+
     socket.on("getCompletedTasks", (data) => {
       taskController.getCompletedTasksBySocket(io, data);
     });

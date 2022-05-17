@@ -136,7 +136,6 @@ const getSingleTask = async (req, res) => {
 };
 
 const editTask = async (req, res) => {
-  console.log(req.body.task_title);
   const { error, value } = taskInputValidation.taskCreateInputValidation({
     task_title: req.body.task_title,
   });
@@ -176,6 +175,54 @@ const editTask = async (req, res) => {
             .send({ errorMessage: "Task does not updated." });
         } else {
           return res.status(200).send({
+            task: updatedTask,
+            message: "Task has been updated successfully.",
+          });
+        }
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+};
+
+const editTaskBySocket = async (io, task_data) => {
+  const { error, value } = taskInputValidation.taskCreateInputValidation({
+    task_title: task_data.task_title,
+  });
+  if (error) {
+    const errors = [];
+    error.details.forEach((detail) => {
+      const currentMessage = detail.message;
+      detail.path.forEach((value) => {
+        logger.log({
+          level: "error",
+          message: `${currentMessage} | Code: 1-1`,
+        });
+        errors.push({ [value]: currentMessage });
+      });
+    });
+    io.emit("editTask", { errorMessage: errors });
+  } else {
+    const id = task_data.id;
+    const user_id = task_data.userId;
+    try {
+      const task = await Task.findOne({ _id: id, user_id: user_id });
+      if (!task) {
+        io.emit("editTask", { errorMessage: "Task does not exist." });
+      } else {
+        const updatedTask = await Task.findByIdAndUpdate(
+          id,
+          { task_title: value.task_title },
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+        if (!updatedTask) {
+          io.emit("editTask", { errorMessage: "Task does not updated." });
+        } else {
+          io.emit("editTask", {
             task: updatedTask,
             message: "Task has been updated successfully.",
           });
@@ -246,29 +293,29 @@ const completedTask = async (req, res) => {
   }
 };
 
-const completedTaskBySocket = async (io, task_data) => {
-  const task_id = task_data.id;
-  const user_id = task_data.userId;
-  const findTask = await Task.findOne({ _id: task_id, user_id: user_id });
-  if (!findTask) {
-    io.emit("completedTask", { errorMessage: "Task is not available" });
-  } else {
-    const updatedTask = await Task.findOneAndUpdate(
-      { _id: task_id, user_id: user_id },
-      { task_complete: true }
-    );
-    if (!updatedTask) {
-      io.emit("completedTask", {
-        errorMessage: "Something went wrong. Task has  not been updated.",
-      });
-    } else {
-      const allTask = await Task.find({ task_complete: false });
-      io.emit("completedTask", {
-        tasks: allTask,
-      });
-    }
-  }
-};
+// const completedTaskBySocket = async (io, task_data) => {
+//   const task_id = task_data.id;
+//   const user_id = task_data.userId;
+//   const findTask = await Task.findOne({ _id: task_id, user_id: user_id });
+//   if (!findTask) {
+//     io.emit("completedTask", { errorMessage: "Task is not available" });
+//   } else {
+//     const updatedTask = await Task.findOneAndUpdate(
+//       { _id: task_id, user_id: user_id },
+//       { task_complete: true }
+//     );
+//     if (!updatedTask) {
+//       io.emit("completedTask", {
+//         errorMessage: "Something went wrong. Task has  not been updated.",
+//       });
+//     } else {
+//       const allTask = await Task.find({ task_complete: false });
+//       io.emit("completedTask", {
+//         tasks: allTask,
+//       });
+//     }
+//   }
+// };
 
 const getCompletedTasks = async (req, res) => {
   const user_id = req.user.userId;
@@ -322,6 +369,7 @@ module.exports = {
   createTaskBySocket,
   getTasksBySocket,
   deleteSingleTaskBySocket,
-  completedTaskBySocket,
+  // completedTaskBySocket,
   getCompletedTasksBySocket,
+  editTaskBySocket,
 };
