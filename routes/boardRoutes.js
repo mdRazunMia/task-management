@@ -55,5 +55,10 @@ router.put(
   authTokenVerify,
   boardController.singleTaskMoveToBoardGroupFromBoard
 );
+// router.put(
+//   "/delete-board-column-task/:board_id",
+//   authTokenVerify,
+//   boardController.deleteBoardColumnTask
+// );
 
 module.exports = router;

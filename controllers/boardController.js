@@ -787,6 +787,8 @@ const editBoardBySocket = async (io, board_data) => {
   }
 };
 
+const editBoardColumnName = async (req, res) => {};
+
 const deleteSingleBoard = async (req, res) => {
   const id = req.params.id;
   const user_id = req.user.userId;
@@ -805,7 +807,32 @@ const deleteSingleBoard = async (req, res) => {
   }
 };
 
-const editBoardColumnName = async (req, res) => {};
+// const deleteBoardColumnTask = async (req, res) => {
+//   const board_id = req.params.board_id;
+//   const column_id = req.query.column_id;
+//   const item_id = req.query.item_id;
+//   const task = req.query.task;
+//   const group = req.query.group;
+//   const user_id = req.user.userId;
+//   try {
+//     if (board_id && column_id && task) {
+//     } else {
+//       const updatedBoardColumn = await Board.findOneAndUpdate(
+//         { _id: board_id, user_id: user_id, "board_column._id": column_id },
+//         {
+//           $pull: {
+//             "board_column.$[s].board_column_task_list.$[t].task_id": item_id,
+//           },
+//         },
+//         {
+//           arrayFilters: [{ "s._id": column_id }, { "t.task_id": item_id }],
+//         }
+//       );
+//     }
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
 
 module.exports = {
   createBoard,
@@ -822,6 +849,7 @@ module.exports = {
   moveToGroupOrSubGroup,
   singleTaskMoveFromBroad,
   singleTaskMoveToBoardGroupFromBoard,
+  // deleteBoardColumnTask,
   createBoardBySocket,
   getBoardsBySocket,
   editBoardBySocket,

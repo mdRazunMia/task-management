@@ -51,6 +51,8 @@ function expressServerApp() {
   //socket connection
   const server = require("http").createServer(app);
   const io = require("socket.io")(server, {
+    pingInterval: 300,
+    pingTimeout: 200,
     cors: {
       // origin: `${process.env.FRONT_END_ORIGIN}`,
       // origin: "http://192.168.68.100:3000",

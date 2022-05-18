@@ -161,8 +161,8 @@ const editTask = async (req, res) => {
       if (!task) {
         return res.status(404).json({ msg: "Task does not exist." });
       } else {
-        const updatedTask = await Task.findByIdAndUpdate(
-          id,
+        const updatedTask = await Task.findOneAndUpdate(
+          { _id: id, user_id: user_id },
           { task_title: value.task_title },
           {
             new: true,
@@ -174,8 +174,13 @@ const editTask = async (req, res) => {
             .status(204)
             .send({ errorMessage: "Task does not updated." });
         } else {
+          const allTasks = await Task.find({
+            user_id: user_id,
+            task_complete: false,
+          });
+          console.log(allTasks);
           return res.status(200).send({
-            task: updatedTask,
+            task: allTasks,
             message: "Task has been updated successfully.",
           });
         }
@@ -212,7 +217,7 @@ const editTaskBySocket = async (io, task_data) => {
         io.emit("editTask", { errorMessage: "Task does not exist." });
       } else {
         const updatedTask = await Task.findByIdAndUpdate(
-          id,
+          { _id: id, user_id: user_id },
           { task_title: value.task_title },
           {
             new: true,
@@ -222,8 +227,13 @@ const editTaskBySocket = async (io, task_data) => {
         if (!updatedTask) {
           io.emit("editTask", { errorMessage: "Task does not updated." });
         } else {
+          const allTasks = await Task.find({
+            user_id: user_id,
+            task_complete: false,
+          });
+          console.log(allTasks);
           io.emit("editTask", {
-            task: updatedTask,
+            task: allTasks,
             message: "Task has been updated successfully.",
           });
         }
