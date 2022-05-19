@@ -257,7 +257,7 @@ const createGroupBySocket = async (io, group_data) => {
 
 const addTaskToGroup = async (req, res) => {
   const group_id = req.params.group_id;
-  const sub_group_id = req.query.sub_group_id;
+  const sub_group_id = req.params.sub_group_id;
   const task_id = req.query.taskId;
   const userId = req.user.userId;
   const task_title = req.body.task_title;
@@ -270,7 +270,7 @@ const addTaskToGroup = async (req, res) => {
         _id: 0,
       }
     );
-    if (group_id && sub_group_id && findNestedValue.nested === true) {
+    if (group_id && sub_group_id != "null" && findNestedValue.nested) {
       const updatedSuperGroupTaskList = await Group.findOneAndUpdate(
         {
           _id: group_id,
@@ -279,12 +279,15 @@ const addTaskToGroup = async (req, res) => {
         },
         {
           $push: {
-            "sub_group.$[].sub_group_task_list": {
+            "sub_group.$[s].sub_group_task_list": {
               task_id: task_id,
               task_title: task_title,
               user_id: userId,
             },
           },
+        },
+        {
+          arrayFilters: [{ "s._id": sub_group_id }],
         }
       );
 
@@ -310,7 +313,7 @@ const addTaskToGroup = async (req, res) => {
         );
         console.log(updatedGroupTaskList);
         if (updatedGroupTaskList) {
-          return res.status(500).send({
+          return res.status(200).send({
             message: "Task has been added .",
           });
         } else {
