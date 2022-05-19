@@ -257,7 +257,7 @@ const createGroupBySocket = async (io, group_data) => {
 
 const addTaskToGroup = async (req, res) => {
   const group_id = req.params.group_id;
-  const sub_group_id = req.params.sub_group_id;
+  const sub_group_id = req.query.sub_group_id;
   const task_id = req.query.taskId;
   const userId = req.user.userId;
   // const task_title = req.body.task_title;
@@ -284,11 +284,7 @@ const addTaskToGroup = async (req, res) => {
         _id: 0,
       }
     );
-    if (
-      group_id &&
-      sub_group_id !== "null" &&
-      findNestedValue.nested === true
-    ) {
+    if (group_id && sub_group_id && findNestedValue.nested === true) {
       const updatedSuperGroupTaskList = await Group.findOneAndUpdate(
         {
           _id: group_id,

@@ -11,7 +11,7 @@ router.delete("/delete/:id", authTokenVerify, groupController.deleteGroup);
 router.put("/edit/:id", authTokenVerify, groupController.editGroup);
 
 router.put(
-  "/add-task/:group_id/:sub_group_id",
+  "/add-task/:group_id",
   authTokenVerify,
   groupController.addTaskToGroup
 );
