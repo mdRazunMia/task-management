@@ -260,21 +260,7 @@ const addTaskToGroup = async (req, res) => {
   const sub_group_id = req.query.sub_group_id;
   const task_id = req.query.taskId;
   const userId = req.user.userId;
-  // const task_title = req.body.task_title;
-  let task_title;
-  let user_id;
-
-  try {
-    const singleTaskData = await Task.findOne({
-      _id: task_id,
-      user_id: userId,
-    });
-    task_title = singleTaskData.task_title;
-    user_id = singleTaskData.user_id;
-  } catch (error) {
-    console.log(error.message);
-  }
-
+  const task_title = req.body.task_title;
   var task_list = [];
   try {
     const findNestedValue = await Group.findOne(
@@ -296,7 +282,7 @@ const addTaskToGroup = async (req, res) => {
             "sub_group.$[].sub_group_task_list": {
               task_id: task_id,
               task_title: task_title,
-              user_id: user_id,
+              user_id: userId,
             },
           },
         }
@@ -315,7 +301,7 @@ const addTaskToGroup = async (req, res) => {
       task_list.push({
         task_id: task_id,
         task_title: task_title,
-        user_id: user_id,
+        user_id: userId,
       });
       try {
         const updatedGroupTaskList = await Group.findOneAndUpdate(
