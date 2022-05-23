@@ -33,9 +33,15 @@ router.put(
 );
 
 router.put(
-  "/move-from-board/:board_id",
+  "/move-from-board-column/:board_id/:column_id",
   authTokenVerify,
-  boardController.moveFromBoard
+  boardController.moveFromBoardColumn
+);
+
+router.put(
+  "/move-to-board-column/:board_id",
+  authTokenVerify,
+  boardController.moveToBoardColumn
 );
 
 router.put(

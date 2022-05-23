@@ -468,12 +468,9 @@ const groupTaskComplete = async (req, res) => {
             "Something went wrong. Task has not been completed from group task list.",
         });
       } else {
-        res
-          .status(200)
-          .send({
-            message:
-              "Task has been completed successfully from group task list.",
-          });
+        res.status(200).send({
+          message: "Task has been completed successfully from group task list.",
+        });
       }
     } else {
       const updatedGroupTask = await Group.findOneAndUpdate(
@@ -705,6 +702,89 @@ const editGroup = async (req, res) => {
   }
 };
 
+const editGroupBySocket = async (io, group_data) => {
+  const { error, value } = groupInputValidation.groupCreateInputValidation({
+    group_title: group_data.group_title,
+  });
+  if (error) {
+    const errors = [];
+    error.details.forEach((detail) => {
+      const currentMessage = detail.message;
+      detail.path.forEach((value) => {
+        logger.log({
+          level: "error",
+          message: `${currentMessage} | Code: 1-1`,
+        });
+        errors.push({ [value]: currentMessage });
+      });
+    });
+    io.emit("editGroup", { errorMessage: error.details[0].message });
+  } else {
+    const group_id = group_data.group_id;
+    const sub_group_id = group_data.sub_group_id;
+    const user_id = group_data.user_id;
+    if (group_id && sub_group_id) {
+      try {
+        const group = await Group.findOneAndUpdate({
+          _id: group_id,
+          user_id: user_id,
+          "sub_group._id": sub_group_id,
+        });
+        if (!group) {
+          return res.status(404).send({ msg: "Group does not exist." });
+        } else {
+          const updatedSubGroupTitle = await Group.updateOne(
+            { _id: group_id, user_id: user_id, "sub_group._id": sub_group_id },
+            {
+              "sub_group.$[].sub_group_title": value.group_title,
+            }
+          );
+          if (!updatedSubGroupTitle) {
+            io.emit("editGroup", {
+              errorMessage: "Something went wrong. Sub-group does not updated.",
+            });
+          } else {
+            io.emit("editGroup", {
+              group: updatedSubGroupTitle,
+              msg: "Sub-group has been updated successfully.",
+            });
+          }
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    } else {
+      try {
+        const group = await Group.find({ _id: group_id, user_id: user_id });
+        if (!group) {
+          return res.status(404).send({ msg: "Group does not exist." });
+        } else {
+          const updatedGroup = await Group.findOneAndUpdate(
+            { _id: group_id, user_id: user_id },
+            { group_title: value.group_title },
+            {
+              new: true,
+              runValidators: true,
+            }
+          );
+          if (!updatedGroup) {
+            io.emit("editGroup", {
+              errorMessage: "Something went wrong. Group does not updated.",
+            });
+          } else {
+            io.emit("editGroup", {
+              group: updatedGroup,
+              msg: "Group has been updated successfully.",
+            });
+          }
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    }
+  }
+};
+
 const deleteGroup = async (req, res) => {
   const id = req.params.id;
   const user_id = req.user.userId;
@@ -813,4 +893,5 @@ module.exports = {
   getGroupCompletedTasks,
   getGroupsBySocket,
   createGroupBySocket,
+  editGroupBySocket,
 };

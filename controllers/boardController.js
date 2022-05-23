@@ -507,14 +507,14 @@ const getBoardsBySocket = async (io, board_data) => {
     console.log(error.message);
   }
 };
-
-//have to discuss
-const moveFromBoard = async (req, res) => {
-  const board_id = req.params.id;
+//drag an item from a board column
+const moveFromBoardColumn = async (req, res) => {
+  const board_id = req.params.board_id;
   const column_id = req.query.column_id;
-  const task_id = req.query.task_id;
+  const task_id = req.body.task_id;
+  const group_id = req.body.group_id;
   const user_id = req.user.userId;
-  if (board_id && column_id) {
+  if (board_id && column_id && task_id) {
     try {
       const updatedColumnTask = await Board.findOneAndUpdate(
         {
@@ -536,13 +536,110 @@ const moveFromBoard = async (req, res) => {
           .status(404)
           .send({ errorMessage: "Something went wrong. Task is not found." });
       } else {
-        return res.status(200).send(updatedColumnTask);
+        return res.status(200).send({
+          message: "Task has been pulled out from the column task list.",
+        });
       }
     } catch (error) {
       console.log(error);
     }
   } else {
+    try {
+      const updatedColumnTask = await Board.findOneAndUpdate(
+        {
+          _id: board_id,
+          user_id: user_id,
+          "board_column._id": column_id,
+        },
+        {
+          $pull: {
+            "board_column.board_column_task_list.$[e]._id": group_id,
+          },
+        },
+        {
+          arrayFilters: [{ "e._id": group_id }],
+        }
+      );
+      if (!updatedColumnTask) {
+        return res
+          .status(404)
+          .send({ errorMessage: "Something went wrong. Group is not found." });
+      } else {
+        return res.status(200).send({
+          message: "Group has been pulled out from the column task list.",
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
+};
+//drop an item to a board column
+const moveToBoardColumn = async (req, res) => {
+  const board_id = req.params.board_id;
+  const column_id = req.query.column_id;
+  const user_id = req.user.userId;
+  const itemBody = req.body;
+  if (board_id && column_id) {
+    try {
+      const updatedColumnTask = await Board.findOneAndUpdate(
+        {
+          _id: board_id,
+          user_id: user_id,
+          "board_column._id": column_id,
+        },
+        {
+          $push: {
+            "board_column.$[e].board_column_task_list": itemBody,
+          },
+        },
+        {
+          arrayFilters: [{ "e._id": board_id }],
+        }
+      );
+      if (!updatedColumnTask) {
+        return res
+          .status(404)
+          .send({ errorMessage: "Something went wrong. Item is not added." });
+      } else {
+        return res.status(200).send({
+          message: "Item has been added successfully.",
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  // else {
+  //   try {
+  //     const updatedColumnTask = await Board.findOneAndUpdate(
+  //       {
+  //         _id: board_id,
+  //         user_id: user_id,
+  //         "board_column._id": column_id,
+  //       },
+  //       {
+  //         $pull: {
+  //           "board_column.$[].board_column_task_list.$[e]._id": group_id,
+  //         },
+  //       },
+  //       {
+  //         arrayFilters: [{ "e._id": group_id }],
+  //       }
+  //     );
+  //     if (!updatedColumnTask) {
+  //       return res
+  //         .status(404)
+  //         .send({ errorMessage: "Something went wrong. Group is not found." });
+  //     } else {
+  //       return res.status(200).send({
+  //         message: "Group has been pulled out from the column task list.",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // }
 };
 
 const moveToGroupOrSubGroup = async (req, res) => {
@@ -971,7 +1068,8 @@ module.exports = {
   addToBoard,
   deleteFromBoard,
   editBoardColumnName,
-  moveFromBoard,
+  moveFromBoardColumn,
+  moveToBoardColumn,
   moveToGroupOrSubGroup,
   singleTaskMoveFromBroad,
   singleTaskMoveToBoardGroupFromBoard,
