@@ -39,7 +39,7 @@ router.put(
 );
 
 router.put(
-  "/move-to-group/:group_id",
+  "/move-to-group/:group_id/:sub_group_id",
   authTokenVerify,
   boardController.moveToGroupOrSubGroup
 );

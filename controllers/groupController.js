@@ -453,6 +453,28 @@ const groupTaskComplete = async (req, res) => {
           .status(200)
           .send({ message: "Sub-group task has been completed successfully." });
       }
+
+      const completedTask = await Task.findOneAndUpdate(
+        { _id: task_id, user_id: user_id },
+        {
+          $set: {
+            task_complete: true,
+          },
+        }
+      );
+      if (!completedTask) {
+        res.status(500).send({
+          errorMessage:
+            "Something went wrong. Task has not been completed from group task list.",
+        });
+      } else {
+        res
+          .status(200)
+          .send({
+            message:
+              "Task has been completed successfully from group task list.",
+          });
+      }
     } else {
       const updatedGroupTask = await Group.findOneAndUpdate(
         {

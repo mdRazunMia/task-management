@@ -1,7 +1,6 @@
 const Task = require("../models/taskModel");
 const taskInputValidation = require("../validations/taskInputValidation");
 const logger = require("../logger/logger");
-// const io = require("socket.io");
 
 const createTask = async (req, res) => {
   const { error, value } = taskInputValidation.taskCreateInputValidation({
