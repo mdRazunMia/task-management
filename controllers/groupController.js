@@ -500,6 +500,7 @@ const groupTaskComplete = async (req, res) => {
         {
           _id: group_id,
           user_id: user_id,
+          "sub_group._id": sub_group_id,
         },
         {
           $set: {
@@ -520,40 +521,20 @@ const groupTaskComplete = async (req, res) => {
           .status(200)
           .send({ message: "Sub-group task has been completed successfully." });
       }
-
-      const completedTask = await Task.findOneAndUpdate(
-        { _id: task_id, user_id: user_id },
-        {
-          $set: {
-            task_complete: true,
-          },
-        }
-      );
-      if (!completedTask) {
-        res.status(500).send({
-          errorMessage:
-            "Something went wrong. Task has not been completed from group task list.",
-        });
-      } else {
-        res.status(200).send({
-          message: "Task has been completed successfully from group task list.",
-        });
-      }
     } else {
       const updatedGroupTask = await Group.findOneAndUpdate(
         {
           _id: group_id,
           user_id: user_id,
-          group_task_list: {
-            $elemMatch: {
-              _id: { $eq: task_id },
-            },
-          },
+          "group_task_list.task_id": task_id,
         },
         {
           $set: {
-            "group_task_list.$.task_complete": true,
+            "group_task_list.$[s].task_complete": true,
           },
+        },
+        {
+          arrayFilters: [{ "s.task_id": task_id }],
         }
       );
       if (!updatedGroupTask) {
