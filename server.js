@@ -163,6 +163,9 @@ function expressServerApp() {
     socket.on("editGroup", (data) => {
       groupController.editGroupBySocket(io, data);
     });
+    socket.on("getSingleGroupData", (data) => {
+      groupController.getSingleGroupBySocket(io, data);
+    });
 
     socket.on("createBoard", (data) => {
       boardController.createBoardBySocket(io, data);

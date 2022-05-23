@@ -422,6 +422,73 @@ const getSingleGroup = async (req, res) => {
   }
 };
 
+const getSingleGroupBySocket = async (io, group_data) => {
+  const id = group_data.group_id;
+  const sub_id = group_data.sub_group_id;
+  const user_id = group_data.user_id;
+  if (id && sub_id) {
+    try {
+      const subGroup = await Group.find(
+        {
+          _id: id,
+          user_id: user_id,
+          "sub_group._id": sub_id,
+        },
+        {
+          group_title: 1,
+          "sub_group.sub_group_title": 1,
+          "sub_group.sub_group_task_list": 1,
+          "sub_group._id": 1,
+        }
+      );
+      if (!subGroup) {
+        res.status(404).send({ message: "Group is not found." });
+      } else {
+        let newObject = {};
+        if (subGroup && subGroup.length > 0) {
+          subGroup.map((group) => {
+            let sub_group_data = group.sub_group;
+            const group_title = group.group_title;
+            const group_id = group._id;
+            if (sub_group_data && sub_group_data.length > 0) {
+              sub_group_data.map((singleSubGroup) => {
+                const id = singleSubGroup._id.toString();
+                if (id === sub_id) {
+                  (newObject.group_title = group_title),
+                    (newObject.group_id = group_id),
+                    (newObject.sub_group_title =
+                      singleSubGroup.sub_group_title),
+                    (newObject.sub_group_task_list =
+                      singleSubGroup.sub_group_task_list),
+                    (newObject._id = singleSubGroup._id);
+                }
+              });
+            }
+          });
+        }
+        // console.log(newObject);
+        // res.status(200).send(newObject);
+        io.emit("getSingleGroupData", newObject);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  } else {
+    try {
+      const group = await Group.findOne({ _id: id, user_id: user_id });
+      if (!group) {
+        // res.status(404).send({ message: "Group is not found." });
+        io.emit("getSingleGroupData", { errorMessage: "Group is not found." });
+      } else {
+        // res.status(200).send(group);
+        io.emit("getSingleGroupData", group);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+};
+
 const groupTaskComplete = async (req, res) => {
   const user_id = req.user.userId;
   const group_id = req.params.group_id;
@@ -703,6 +770,7 @@ const editGroup = async (req, res) => {
 };
 
 const editGroupBySocket = async (io, group_data) => {
+  console.log(group_data);
   const { error, value } = groupInputValidation.groupCreateInputValidation({
     group_title: group_data.group_title,
   });
@@ -725,7 +793,7 @@ const editGroupBySocket = async (io, group_data) => {
     const user_id = group_data.user_id;
     if (group_id && sub_group_id) {
       try {
-        const group = await Group.findOneAndUpdate({
+        const group = await Group.findOne({
           _id: group_id,
           user_id: user_id,
           "sub_group._id": sub_group_id,
@@ -733,10 +801,10 @@ const editGroupBySocket = async (io, group_data) => {
         if (!group) {
           return res.status(404).send({ msg: "Group does not exist." });
         } else {
-          const updatedSubGroupTitle = await Group.updateOne(
+          const updatedSubGroupTitle = await Group.findOneAndUpdate(
             { _id: group_id, user_id: user_id, "sub_group._id": sub_group_id },
             {
-              "sub_group.$[].sub_group_title": value.group_title,
+              $set: { "sub_group.$[].sub_group_title": value.group_title },
             }
           );
           if (!updatedSubGroupTitle) {
@@ -751,7 +819,7 @@ const editGroupBySocket = async (io, group_data) => {
           }
         }
       } catch (error) {
-        console.log(error.message);
+        console.log(error);
       }
     } else {
       try {
@@ -894,4 +962,5 @@ module.exports = {
   getGroupsBySocket,
   createGroupBySocket,
   editGroupBySocket,
+  getSingleGroupBySocket,
 };
