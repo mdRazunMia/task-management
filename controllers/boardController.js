@@ -563,33 +563,46 @@ const moveToGroupOrSubGroup = async (req, res) => {
       }
     );
     if (group_id && sub_group_id != "null" && findNestedValue.nested) {
-      const updatedSuperGroupTaskList = await Group.findOneAndUpdate(
-        {
-          _id: group_id,
-          user_id: user_id,
-          "sub_group._id": sub_group_id,
-        },
-        {
-          $push: {
-            "sub_group.$[s].sub_group_task_list": {
-              task_id: task_id,
-              task_title: task_title,
-              user_id: user_id,
-            },
+      const findExistingTaskInTheGroupTaskList = await Group.findOne({
+        "sub_group.sub_group_task_list": {
+          $elemMatch: {
+            task_id: task_id,
           },
         },
-        {
-          arrayFilters: [{ "s._id": sub_group_id }],
-        }
-      );
+      });
+      if (!findExistingTaskInTheGroupTaskList) {
+        const updatedSuperGroupTaskList = await Group.findOneAndUpdate(
+          {
+            _id: group_id,
+            user_id: user_id,
+            "sub_group._id": sub_group_id,
+          },
+          {
+            $push: {
+              "sub_group.$[s].sub_group_task_list": {
+                task_id: task_id,
+                task_title: task_title,
+                user_id: user_id,
+              },
+            },
+          },
+          {
+            arrayFilters: [{ "s._id": sub_group_id }],
+          }
+        );
 
-      if (updatedSuperGroupTaskList) {
-        return res
-          .status(201)
-          .send({ message: "Task has been added to the sub-group." });
+        if (updatedSuperGroupTaskList) {
+          return res
+            .status(201)
+            .send({ message: "Task has been added to the sub-group." });
+        } else {
+          return res.status(500).send({
+            errorMessage: "Task has not been added to the group.",
+          });
+        }
       } else {
-        return res.status(500).send({
-          errorMessage: "Task has not been added to the group.",
+        return res.status(400).send({
+          errorMessage: "Task has already been added to the sub-group.",
         });
       }
     } else {
@@ -599,19 +612,33 @@ const moveToGroupOrSubGroup = async (req, res) => {
         user_id: user_id,
       });
       try {
-        const updatedGroupTaskList = await Group.findOneAndUpdate(
-          { _id: group_id, user_id: user_id },
-          { $push: { group_task_list: task_list } }
-        );
-        console.log(updatedGroupTaskList);
-        if (updatedGroupTaskList) {
-          return res.status(200).send({
-            message: "Task has been added .",
-          });
+        const findExistingTaskInTheGroupTaskList = await Group.findOne({
+          group_task_list: {
+            $elemMatch: {
+              task_id: task_id,
+            },
+          },
+        });
+
+        if (!findExistingTaskInTheGroupTaskList) {
+          const updatedGroupTaskList = await Group.findOneAndUpdate(
+            { _id: group_id, user_id: user_id },
+            { $push: { group_task_list: task_list } }
+          );
+          console.log(updatedGroupTaskList);
+          if (updatedGroupTaskList) {
+            return res.status(200).send({
+              message: "Task has been added .",
+            });
+          } else {
+            return res
+              .status(500)
+              .send({ message: "Task has not been added to the group." });
+          }
         } else {
-          return res
-            .status(500)
-            .send({ message: "Task has not been added to the group." });
+          return res.status(400).send({
+            errorMessage: "Task has already been added to the group.",
+          });
         }
       } catch (error) {
         console.log(error.message);
