@@ -620,37 +620,37 @@ const moveToGroupOrSubGroup = async (req, res) => {
   } catch (error) {
     console.log(error.message);
   }
-
-  if (board_id && column_id) {
-    try {
-      const updatedColumnTask = await Board.findOneAndUpdate(
-        {
-          _id: board_id,
-          user_id: user_id,
-          "board_column._id": column_id,
-        },
-        {
-          $pull: {
-            "board_column.board_column_task_list.$[e]._id": task_id,
-          },
-        },
-        {
-          arrayFilters: [{ "e._id": task_id }],
-        }
-      );
-      if (!updatedColumnTask) {
-        return res
-          .status(404)
-          .send({ errorMessage: "Something went wrong. Task is not found." });
-      } else {
-        return res.status(200).send({
-          message: "task has been pulled out from the board column.",
-        });
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
+  //code for removing task after move to a group.
+  // if (board_id && column_id) {
+  //   try {
+  //     const updatedColumnTask = await Board.findOneAndUpdate(
+  //       {
+  //         _id: board_id,
+  //         user_id: user_id,
+  //         "board_column._id": column_id,
+  //       },
+  //       {
+  //         $pull: {
+  //           "board_column.board_column_task_list.$[e]._id": task_id,
+  //         },
+  //       },
+  //       {
+  //         arrayFilters: [{ "e._id": task_id }],
+  //       }
+  //     );
+  //     if (!updatedColumnTask) {
+  //       return res
+  //         .status(404)
+  //         .send({ errorMessage: "Something went wrong. Task is not found." });
+  //     } else {
+  //       return res.status(200).send({
+  //         message: "task has been pulled out from the board column.",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // }
 };
 
 // Pull single board task to the group or sub-group of that board
