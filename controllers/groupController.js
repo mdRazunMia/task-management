@@ -508,7 +508,7 @@ const groupTaskComplete = async (req, res) => {
           },
         },
         {
-          arrayFilters: [{ "e._id": sub_group_id }, { "s._id": task_id }],
+          arrayFilters: [{ "e._id": sub_group_id }, { "s.task_id": task_id }],
         }
       );
       if (!updatedGroupTask) {
