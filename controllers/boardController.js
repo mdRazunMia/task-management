@@ -581,6 +581,7 @@ const moveToBoardColumn = async (req, res) => {
   const user_id = req.user.userId;
   const itemBody = req.body;
   if (board_id && column_id) {
+    // && itemBody.task then it will
     try {
       const updatedColumnTask = await Board.findOneAndUpdate(
         {
@@ -640,6 +641,170 @@ const moveToBoardColumn = async (req, res) => {
   //     console.log(error);
   //   }
   // }
+};
+
+const dragFromBoardColumnGroupOrSubGroup = async (req, res) => {
+  const board_id = req.params.board_id;
+  const column_id = req.params.column_id;
+  const board_column_group_id = req.query.board_column_group_id;
+  const board_column_sub_group_id = req.query.board_column_sub_group_id;
+  // const board_column_group_or_sub_group_task_info = req.body;
+  const board_column_group_or_sub_group_task_id = req.body.task_id;
+  const user_id = req.user.userId;
+  if (
+    board_id &&
+    column_id &&
+    board_column_group_id &&
+    board_column_group_or_sub_group_task_id
+  ) {
+    const updatedBoardColumnGroupTaskList = await Group.findOneAndUpdate(
+      {
+        _id: group_id,
+        user_id: user_id,
+        "board_column.board_column_task_list.group_id": board_column_group_id,
+        "board_column.board_column_task_list.group_task_list.task_id":
+          board_column_group_or_sub_group_task_id,
+      },
+      {
+        $pull: {
+          "board_column.$[b].board_column_task_list.$[s].group_task_list.$[t].task_id":
+            board_column_group_or_sub_group_task_id,
+        },
+      },
+      {
+        arrayFilters: [
+          { "b._id": board_id },
+          { "s._id": board_column_group_id },
+          { "t.task_id": board_column_group_or_sub_group_task_id },
+        ],
+      }
+    );
+    if (!updatedBoardColumnGroupTaskList) {
+      return res.status(500).send({
+        errorMessage: "Something went wrong. Task has not been dragged.",
+      });
+    } else {
+      return res
+        .status(200)
+        .send({ message: "Task has been dragged successfully." });
+    }
+  } else {
+    const updatedBoardColumnGroupTaskList = await Group.findOneAndUpdate(
+      {
+        _id: group_id,
+        user_id: user_id,
+        "board_column.board_column_task_list.group_id": board_column_group_id,
+        "board_column.board_column_task_list.sub_group._id":
+          board_column_sub_group_id,
+        "board_column.board_column_task_list.sub_group.sub_group_task_list.task_id":
+          board_column_group_or_sub_group_task_id,
+      },
+      {
+        $pull: {
+          "board_column.$[b].board_column_task_list.$[s].sub_group.$[m].sub_group_task_list.$[t].task_id":
+            board_column_group_or_sub_group_task_id,
+        },
+      },
+      {
+        arrayFilters: [
+          { "b._id": board_id },
+          { "s._id": board_column_group_id },
+          { "m._id": board_column_sub_group_id },
+          { "t.task_id": board_column_group_or_sub_group_task_id },
+        ],
+      }
+    );
+    if (!updatedBoardColumnGroupTaskList) {
+      return res.status(500).send({
+        errorMessage: "Something went wrong. Task has not been dragged.",
+      });
+    } else {
+      return res
+        .status(200)
+        .send({ message: "Task has been dragged successfully." });
+    }
+  }
+};
+const dropToBoardColumnGroupOrSubGroup = async (req, res) => {
+  const board_id = req.params.board_id;
+  const column_id = req.params.column_id;
+  const board_column_group_id = req.query.board_column_group_id;
+  const board_column_sub_group_id = req.query.board_column_sub_group_id;
+  const board_column_group_or_sub_group_task_info = req.body;
+  const board_column_group_or_sub_group_task_id = req.body.task_id;
+  const user_id = req.user.userId;
+  if (
+    board_id &&
+    column_id &&
+    board_column_group_id &&
+    board_column_group_or_sub_group_task_id
+  ) {
+    const updatedBoardColumnGroupTaskList = await Group.findOneAndUpdate(
+      {
+        _id: group_id,
+        user_id: user_id,
+        "board_column.board_column_task_list.group_id": board_column_group_id,
+        "board_column.board_column_task_list.group_task_list.task_id":
+          board_column_group_or_sub_group_task_id,
+      },
+      {
+        $push: {
+          "board_column.$[b].board_column_task_list.$[s].group_task_list":
+            board_column_group_or_sub_group_task_info,
+        },
+      },
+      {
+        arrayFilters: [
+          { "b._id": board_id },
+          { "s._id": board_column_group_id },
+        ],
+      }
+    );
+    if (!updatedBoardColumnGroupTaskList) {
+      return res.status(500).send({
+        errorMessage: "Something went wrong. Task has not been dragged.",
+      });
+    } else {
+      return res
+        .status(200)
+        .send({ message: "Task has been dragged successfully." });
+    }
+  } else {
+    const updatedBoardColumnGroupTaskList = await Group.findOneAndUpdate(
+      {
+        _id: group_id,
+        user_id: user_id,
+        "board_column.board_column_task_list.group_id": board_column_group_id,
+        "board_column.board_column_task_list.sub_group._id":
+          board_column_sub_group_id,
+        "board_column.board_column_task_list.sub_group.sub_group_task_list.task_id":
+          board_column_group_or_sub_group_task_id,
+      },
+      {
+        $push: {
+          "board_column.$[b].board_column_task_list.$[s].sub_group.$[m].sub_group_task_list":
+            board_column_group_or_sub_group_task_info,
+        },
+      },
+      {
+        arrayFilters: [
+          { "b._id": board_id },
+          { "s._id": board_column_group_id },
+          { "m._id": board_column_sub_group_id },
+          { "t.task_id": board_column_group_or_sub_group_task_id },
+        ],
+      }
+    );
+    if (!updatedBoardColumnGroupTaskList) {
+      return res.status(500).send({
+        errorMessage: "Something went wrong. Task has not been dragged.",
+      });
+    } else {
+      return res
+        .status(200)
+        .send({ message: "Task has been dragged successfully." });
+    }
+  }
 };
 
 const moveToGroupOrSubGroup = async (req, res) => {
@@ -1077,4 +1242,6 @@ module.exports = {
   createBoardBySocket,
   getBoardsBySocket,
   editBoardBySocket,
+  dragFromBoardColumnGroupOrSubGroup,
+  dropToBoardColumnGroupOrSubGroup,
 };

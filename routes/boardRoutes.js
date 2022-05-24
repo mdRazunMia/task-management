@@ -67,4 +67,16 @@ router.put(
 //   boardController.deleteBoardColumnTask
 // );
 
+router.put(
+  "/drag-from-board-column-group/:board_id/:column_id",
+  authTokenVerify,
+  boardController.dragFromBoardColumnGroupOrSubGroup
+);
+
+router.put(
+  "/drop-to-board-column-group/:board_id/:column_id",
+  authTokenVerify,
+  boardController.dropToBoardColumnGroupOrSubGroup
+);
+
 module.exports = router;
