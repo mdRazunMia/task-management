@@ -517,9 +517,18 @@ const groupTaskComplete = async (req, res) => {
             "Something went wrong. Sub-group task has not been completed.",
         });
       } else {
-        res
-          .status(200)
-          .send({ message: "Sub-group task has been completed successfully." });
+        // res
+        //   .status(200)
+        //   .send({ message: "Sub-group task has been completed successfully." });
+
+        await Task.findOneAndUpdate(
+          { _id: task_id, user_id: user_id },
+          {
+            $set: {
+              task_complete: true,
+            },
+          }
+        );
       }
     } else {
       const updatedGroupTask = await Group.findOneAndUpdate(
@@ -543,9 +552,17 @@ const groupTaskComplete = async (req, res) => {
             "Something went wrong. Group task has not been completed.",
         });
       } else {
-        res
-          .status(200)
-          .send({ message: "Group task has been completed successfully." });
+        // res
+        //   .status(200)
+        //   .send({ message: "Group task has been completed successfully." });
+        await Task.findOneAndUpdate(
+          { _id: task_id, user_id: user_id },
+          {
+            $set: {
+              task_complete: true,
+            },
+          }
+        );
       }
     }
   } catch (error) {
