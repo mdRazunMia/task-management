@@ -577,11 +577,144 @@ const moveFromBoardColumn = async (req, res) => {
 //drop an item to a board column
 const moveToBoardColumn = async (req, res) => {
   const board_id = req.params.board_id;
-  const column_id = req.query.column_id;
+  const column_id = req.params.column_id;
+  const board_column_group_id = req.query.board_column_group_id;
+  const board_column_sub_group_id = req.query.board_column_sub_group_id;
   const user_id = req.user.userId;
   const itemBody = req.body;
-  if (board_id && column_id) {
-    // && itemBody.task then it will
+  console.log(itemBody);
+
+  if (
+    board_id &&
+    column_id &&
+    board_column_group_id &&
+    board_column_sub_group_id &&
+    itemBody.task
+  ) {
+    // task will be added to the sub-group of that group of the board column.
+    try {
+      const updatedColumnTask = await Board.findOneAndUpdate(
+        {
+          _id: board_id,
+          user_id: user_id,
+          "board_column._id": column_id,
+          "board_column.board_column_task_list.group_id": board_column_group_id,
+          "board_column.board_column_task_list.sub_group._id":
+            board_column_sub_group_id,
+        },
+        {
+          $push: {
+            "board_column.$[e].board_column_task_list.$[t].sub_group.$[s].sub_group_task_list":
+              itemBody,
+          },
+        },
+        {
+          arrayFilters: [
+            { "e._id": column_id },
+            { "t.group_id": board_column_group_id },
+            { "s._id": board_column_sub_group_id },
+          ],
+        }
+      );
+      if (!updatedColumnTask) {
+        return res
+          .status(404)
+          .send({ errorMessage: "Something went wrong. Item is not added." });
+      } else {
+        return res.status(200).send({
+          message: "Item has been added successfully.",
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  } else if (board_id && column_id && board_column_group_id && itemBody.group) {
+    // coming group will be sub-group of the group
+    const modifiedGroupObjectToSubGroup = {
+      sub_group_title: itemBody.group_title,
+      sub_group_task_list: JSON.parse(JSON.stringify(itemBody.group_task_list)),
+      _id: itemBody.group_id,
+    };
+    try {
+      const updatedColumnTask = await Board.findOneAndUpdate(
+        {
+          _id: board_id,
+          user_id: user_id,
+          "board_column._id": column_id,
+          "board_column.board_column_task_list.group_id": board_column_group_id,
+        },
+        {
+          $push: {
+            "board_column.$[e].board_column_task_list.$[t].sub_group":
+              modifiedGroupObjectToSubGroup,
+          },
+        },
+        {
+          arrayFilters: [
+            { "e._id": column_id },
+            { "t.group_id": board_column_group_id },
+          ],
+        }
+      );
+      if (!updatedColumnTask) {
+        return res
+          .status(404)
+          .send({ errorMessage: "Something went wrong. Item is not added." });
+      } else {
+        return res.status(200).send({
+          message: "Item has been added successfully.",
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  } else if (board_id && column_id && board_column_group_id && itemBody.task) {
+    // coming task will be in the group task list
+    console.log("in the board column group");
+    try {
+      const updatedColumnTask = await Board.findOneAndUpdate(
+        {
+          _id: board_id,
+          user_id: user_id,
+          "board_column._id": column_id,
+          "board_column.board_column_task_list.group_id": board_column_group_id,
+        },
+        {
+          $push: {
+            "board_column.$[e].board_column_task_list.$[t].group_task_list":
+              itemBody,
+          },
+        },
+        {
+          arrayFilters: [
+            { "e._id": column_id },
+            { "t.group_id": board_column_group_id },
+          ],
+        }
+      );
+      if (!updatedColumnTask) {
+        return res
+          .status(404)
+          .send({ errorMessage: "Something went wrong. Item is not added." });
+      } else {
+        return res.status(200).send({
+          message: "Item has been added successfully.",
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  } else if (
+    board_id &&
+    column_id &&
+    board_column_group_id &&
+    board_column_sub_group_id &&
+    itemBody.group
+  ) {
+    return res.status(401).send({
+      errorMessage: "You can't drop a group into a sub-group of group.",
+    });
+  } else if (board_id && column_id) {
     try {
       const updatedColumnTask = await Board.findOneAndUpdate(
         {
@@ -610,37 +743,9 @@ const moveToBoardColumn = async (req, res) => {
     } catch (error) {
       console.log(error);
     }
+  } else {
+    console.log(hello);
   }
-  // else {
-  //   try {
-  //     const updatedColumnTask = await Board.findOneAndUpdate(
-  //       {
-  //         _id: board_id,
-  //         user_id: user_id,
-  //         "board_column._id": column_id,
-  //       },
-  //       {
-  //         $pull: {
-  //           "board_column.$[].board_column_task_list.$[e]._id": group_id,
-  //         },
-  //       },
-  //       {
-  //         arrayFilters: [{ "e._id": group_id }],
-  //       }
-  //     );
-  //     if (!updatedColumnTask) {
-  //       return res
-  //         .status(404)
-  //         .send({ errorMessage: "Something went wrong. Group is not found." });
-  //     } else {
-  //       return res.status(200).send({
-  //         message: "Group has been pulled out from the column task list.",
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // }
 };
 
 const dragFromBoardColumnGroupOrSubGroup = async (req, res) => {
@@ -1195,32 +1300,131 @@ const deleteSingleBoard = async (req, res) => {
   }
 };
 
-// const deleteBoardColumnTask = async (req, res) => {
-//   const board_id = req.params.board_id;
-//   const column_id = req.query.column_id;
-//   const item_id = req.query.item_id;
-//   const task = req.query.task;
-//   const group = req.query.group;
-//   const user_id = req.user.userId;
-//   try {
-//     if (board_id && column_id && task) {
-//     } else {
-//       const updatedBoardColumn = await Board.findOneAndUpdate(
-//         { _id: board_id, user_id: user_id, "board_column._id": column_id },
-//         {
-//           $pull: {
-//             "board_column.$[s].board_column_task_list.$[t].task_id": item_id,
-//           },
-//         },
-//         {
-//           arrayFilters: [{ "s._id": column_id }, { "t.task_id": item_id }],
-//         }
-//       );
-//     }
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
+const deleteBoardColumnTask = async (req, res) => {
+  const board_id = req.params.board_id;
+  const column_id = req.params.column_id;
+  const board_column_group_id = req.query.board_column_group_id;
+  const board_column_sub_group_id = req.query.board_column_sub_group_id;
+  const board_column_group_or_sub_group_task_id = req.body.task_id;
+  const user_id = req.user.userId;
+  if (
+    board_id &&
+    column_id &&
+    board_column_group_id &&
+    board_column_sub_group_id &&
+    board_column_group_or_sub_group_task_id
+  ) {
+    const updatedBoardColumnGroupTaskList = await Board.findOneAndUpdate(
+      {
+        _id: board_id,
+        user_id: user_id,
+        "board_column.board_column_task_list.group_id": board_column_group_id,
+        "board_column.board_column_task_list.sub_group.sub_group._id":
+          board_column_sub_group_id,
+        "board_column.board_column_task_list.sub_group.sub_group.sub_group_task_list.task_id":
+          board_column_group_or_sub_group_task_id,
+      },
+      {
+        $pull: {
+          "board_column.$[b].board_column_task_list.$[s].sub_group.$[m].sub_group_task_list.$[t].task_id":
+            board_column_group_or_sub_group_task_id,
+        },
+      },
+      {
+        arrayFilters: [
+          { "b._id": board_id },
+          { "s._id": board_column_group_id },
+          { "m._id": board_column_sub_group_id },
+          { "t.task_id": board_column_group_or_sub_group_task_id },
+        ],
+      }
+    );
+    if (!updatedBoardColumnGroupTaskList) {
+      return res.status(500).send({
+        errorMessage:
+          "Something went wrong. Task has not been deleted from sub-group of a column group.",
+      });
+    } else {
+      return res
+        .status(200)
+        .send({
+          message: "Task has been deleted from sub-group of a column group.",
+        });
+    }
+  } else if (
+    board_id &&
+    column_id &&
+    board_column_group_id &&
+    board_column_group_or_sub_group_task_id
+  ) {
+    const updatedBoardColumnGroupTaskList = await Board.findOneAndUpdate(
+      {
+        _id: board_id,
+        user_id: user_id,
+        "board_column.board_column_task_list.group_id": board_column_group_id,
+        "board_column.board_column_task_list.group_task_list.task_id":
+          board_column_group_or_sub_group_task_id,
+      },
+      {
+        $pull: {
+          "board_column.$[b].board_column_task_list.$[s].group_task_list.$[t].task_id":
+            board_column_group_or_sub_group_task_id,
+        },
+      },
+      {
+        arrayFilters: [
+          { "b._id": board_id },
+          { "s._id": board_column_group_id },
+          { "t.task_id": board_column_group_or_sub_group_task_id },
+        ],
+      }
+    );
+    if (!updatedBoardColumnGroupTaskList) {
+      return res.status(500).send({
+        errorMessage:
+          "Something went wrong. Task has not been deleted from group of a column.",
+      });
+    } else {
+      return res
+        .status(200)
+        .send({ message: "Task has been deleted from group of a column" });
+    }
+  } else if (board_id && column_id && board_column_group_or_sub_group_task_id) {
+    const updatedBoardColumnGroupTaskList = await Board.findOneAndUpdate(
+      {
+        _id: board_id,
+        user_id: user_id,
+        "board_column._id": column_id,
+      },
+      {
+        $pull: {
+          "board_column.$[b].board_column_task_list.$[t].task_id":
+            board_column_group_or_sub_group_task_id,
+        },
+      },
+      {
+        arrayFilters: [
+          { "b._id": column_id },
+          { "t.task_id": board_column_group_or_sub_group_task_id },
+        ],
+      }
+    );
+    if (!updatedBoardColumnGroupTaskList) {
+      return res.status(500).send({
+        errorMessage:
+          "Something went wrong. Task has not been deleted from board column.",
+      });
+    } else {
+      return res
+        .status(200)
+        .send({ message: "Task has been deleted from board column" });
+    }
+  } else {
+    console.log(
+      "something wrong in the task delete function in board column task list"
+    );
+  }
+};
 
 module.exports = {
   createBoard,
@@ -1228,7 +1432,6 @@ module.exports = {
   getSingleBoard,
   editBoard,
   deleteSingleBoard,
-  // addTaskToColumn,
   getGroupsAndTasks,
   addToBoard,
   deleteFromBoard,
@@ -1238,10 +1441,10 @@ module.exports = {
   moveToGroupOrSubGroup,
   singleTaskMoveFromBroad,
   singleTaskMoveToBoardGroupFromBoard,
-  // deleteBoardColumnTask,
   createBoardBySocket,
   getBoardsBySocket,
   editBoardBySocket,
   dragFromBoardColumnGroupOrSubGroup,
   dropToBoardColumnGroupOrSubGroup,
+  deleteBoardColumnTask,
 };

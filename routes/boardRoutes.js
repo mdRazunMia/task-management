@@ -39,7 +39,7 @@ router.put(
 );
 
 router.put(
-  "/move-to-board-column/:board_id",
+  "/move-to-board-column/:board_id/:column_id",
   authTokenVerify,
   boardController.moveToBoardColumn
 );
@@ -77,6 +77,12 @@ router.put(
   "/drop-to-board-column-group/:board_id/:column_id",
   authTokenVerify,
   boardController.dropToBoardColumnGroupOrSubGroup
+);
+
+router.put(
+  "/delete-board-column-task/:board_id/:column_id",
+  authTokenVerify,
+  boardController.deleteBoardColumnTask
 );
 
 module.exports = router;
