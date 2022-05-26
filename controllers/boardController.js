@@ -227,7 +227,7 @@ const getGroupsAndTasks = async (req, res) => {
           JSON.stringify(group.sub_group)
         );
       }
-      modifiedGroupObject.group = true;
+      modifiedGroupObject.group = group.group;
       groupList.push(modifiedGroupObject);
     });
   } catch (error) {
@@ -243,7 +243,7 @@ const getGroupsAndTasks = async (req, res) => {
       var modifiedTaskObject = {
         task_id: task._id,
         task_title: task.task_title,
-        task: true,
+        task: task.task,
         complete: false,
         user_id: task.user_id,
       };
@@ -1345,11 +1345,9 @@ const deleteBoardColumnTask = async (req, res) => {
           "Something went wrong. Task has not been deleted from sub-group of a column group.",
       });
     } else {
-      return res
-        .status(200)
-        .send({
-          message: "Task has been deleted from sub-group of a column group.",
-        });
+      return res.status(200).send({
+        message: "Task has been deleted from sub-group of a column group.",
+      });
     }
   } else if (
     board_id &&
