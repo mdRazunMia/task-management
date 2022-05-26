@@ -1666,28 +1666,63 @@ const boardCompletedTask = async (req, res) => {
 const getCompletedBoardTask = async (req, res) => {
   const board_id = req.params.board_id;
   let boardCompletedTasks = [];
-  let boardColumnCompletedTasksArray = [];
+  let completedTaskByColumn = [];
   try {
-    const board_data = await Board.find({ _id: board_id });
-    board_data.map((board_info) => {
-      const board_task_list = board_info.task_list;
-      if (board_task_list.length > 0) {
-        board_task_list.map((task) => {
-          if (task.complete) {
-            boardCompletedTasks.push(task);
+    const board_data = await Board.findOne({ _id: board_id });
+    const board_task_list = board_data.task_list;
+    if (board_task_list.length > 0) {
+      board_task_list.map((task) => {
+        if (task.complete) {
+          boardCompletedTasks.push(task);
+        }
+      });
+    }
+    if (board_data.nested) {
+      const board_column_info = board_data.board_column;
+      if (board_column_info.length > 0) {
+        board_column_info.map((column_info, board_column_index) => {
+          const groupOrSubGroupCompletedTask = [];
+          const board_column_task_list = column_info.board_column_task_list;
+          if (board_column_task_list.length > 0) {
+            board_column_task_list.map((task_item) => {
+              if (task_item.group) {
+                const group_task_list = task_item.group_task_list;
+                if (group_task_list.length > 0) {
+                  group_task_list.map((task) => {
+                    if (task.complete) {
+                      groupOrSubGroupCompletedTask.push(task);
+                    }
+                  });
+                }
+                const sub_group = task_item.sub_group;
+                if (sub_group.length > 0) {
+                  sub_group.map((single_sub_group) => {
+                    const sub_group_task = single_sub_group.sub_group_task_list;
+                    if (sub_group_task.length > 0) {
+                      sub_group_task.map((task_item) => {
+                        if (task_item.complete) {
+                          groupOrSubGroupCompletedTask.push(task_item);
+                        }
+                      });
+                    }
+                  });
+                }
+              }
+              if (task_item.task && task_item.complete) {
+                groupOrSubGroupCompletedTask.push(task_item);
+              }
+            });
           }
+          completedTaskByColumn.push(groupOrSubGroupCompletedTask);
         });
       }
-      if (board_info.nested) {
-        const board_column_info = board_info.board_column;
-        board_column_info.map((column_info) => {
-          console.log(column_info.board_column_task_list);
-          if (column_info.group) {
-          }
-        });
-      }
-    });
-    // return res.send(boardCompletedTasks);
+    }
+    res
+      .status(200)
+      .send({
+        completedBoardTasks: boardCompletedTasks,
+        completedColumnWiseTasks: completedTaskByColumn,
+      });
   } catch (error) {
     console.log(error);
   }
