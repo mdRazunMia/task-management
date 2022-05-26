@@ -80,9 +80,21 @@ router.put(
 );
 
 router.put(
-  "/delete-board-column-task/:board_id/:column_id",
+  "/delete-board-column-task/:board_id",
   authTokenVerify,
   boardController.deleteBoardColumnTask
+);
+
+router.put(
+  "/complete-board-task/:board_id",
+  authTokenVerify,
+  boardController.boardCompletedTask
+);
+
+router.get(
+  "/get-board-completed-task/:board_id",
+  authTokenVerify,
+  boardController.getCompletedBoardTask
 );
 
 module.exports = router;

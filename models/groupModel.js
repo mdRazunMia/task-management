@@ -90,10 +90,10 @@ const GroupSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    group: {
-      type: Boolean,
-      default: true,
-    },
+    // group: {
+    //   type: Boolean,
+    //   default: true,
+    // },
     sub_group: [
       {
         sub_group_title: {
