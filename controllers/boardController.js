@@ -1365,22 +1365,23 @@ const deleteBoardColumnTask = async (req, res) => {
           _id: board_id,
           user_id: user_id,
           "board_column.board_column_task_list.group_id": board_column_group_id,
-          "board_column.board_column_task_list.group_task_list.task_id":
-            board_column_group_or_sub_group_task_id,
+          // "board_column.board_column_task_list.group_task_list.task_id":
+          //   board_column_group_or_sub_group_task_id,
         },
         {
           $pull: {
-            "board_column.$[b].board_column_task_list.$[s].group_task_list.$[t].task_id":
-              board_column_group_or_sub_group_task_id,
+            "board_column.$[].board_column_task_list.$[].group_task_list": {
+              task_id: board_column_group_or_sub_group_task_id,
+            },
           },
-        },
-        {
-          arrayFilters: [
-            { "b._id": board_id },
-            { "s._id": board_column_group_id },
-            { "t.task_id": board_column_group_or_sub_group_task_id },
-          ],
         }
+        // {
+        //   arrayFilters: [
+        //     { "b._id": board_id },
+        //     { "s._id": board_column_group_id },
+        //     // { "t.task_id": board_column_group_or_sub_group_task_id },
+        //   ],
+        // }
       );
       if (!updatedBoardColumnGroupTaskList) {
         return res.status(500).send({
@@ -1396,6 +1397,8 @@ const deleteBoardColumnTask = async (req, res) => {
       console.log(error);
     }
   } else if (board_id && column_id && board_column_group_or_sub_group_task_id) {
+    console.log("board column task");
+    console.log(board_id + column_id + board_column_group_or_sub_group_task_id);
     try {
       const updatedBoardColumnGroupTaskList = await Board.findOneAndUpdate(
         {
@@ -1405,15 +1408,10 @@ const deleteBoardColumnTask = async (req, res) => {
         },
         {
           $pull: {
-            "board_column.$[b].board_column_task_list.$[t].task_id":
-              board_column_group_or_sub_group_task_id,
+            "board_column.$[].board_column_task_list": {
+              task_id: board_column_group_or_sub_group_task_id,
+            },
           },
-        },
-        {
-          arrayFilters: [
-            { "b._id": column_id },
-            { "t.task_id": board_column_group_or_sub_group_task_id },
-          ],
         }
       );
       if (!updatedBoardColumnGroupTaskList) {
@@ -1435,18 +1433,18 @@ const deleteBoardColumnTask = async (req, res) => {
         {
           _id: board_id,
           user_id: user_id,
-          "task_list.task_id": board_column_group_or_sub_group_task_id,
+          // "task_list.task_id": board_column_group_or_sub_group_task_id,
         },
         {
           $pull: {
-            "task_list.$[t].task_id": board_column_group_or_sub_group_task_id,
+            "task_list.$[].task_id": board_column_group_or_sub_group_task_id,
           },
-        },
-        {
-          arrayFilters: [
-            { "t.task_id": board_column_group_or_sub_group_task_id },
-          ],
         }
+        // {
+        //   arrayFilters: [
+        //     { "t.task_id": board_column_group_or_sub_group_task_id },
+        //   ],
+        // }
       );
       if (!updatedBoardColumnGroupTaskList) {
         return res.status(500).send({
@@ -1717,12 +1715,10 @@ const getCompletedBoardTask = async (req, res) => {
         });
       }
     }
-    res
-      .status(200)
-      .send({
-        completedBoardTasks: boardCompletedTasks,
-        completedColumnWiseTasks: completedTaskByColumn,
-      });
+    res.status(200).send({
+      completedBoardTasks: boardCompletedTasks,
+      completedColumnWiseTasks: completedTaskByColumn,
+    });
   } catch (error) {
     console.log(error);
   }
