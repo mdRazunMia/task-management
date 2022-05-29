@@ -1319,16 +1319,17 @@ const deleteBoardColumnTask = async (req, res) => {
         {
           _id: board_id,
           user_id: user_id,
+          "board_column._id": column_id,
           "board_column.board_column_task_list.group_id": board_column_group_id,
-          "board_column.board_column_task_list.sub_group.sub_group._id":
+          "board_column.board_column_task_list.sub_group._id":
             board_column_sub_group_id,
-          "board_column.board_column_task_list.sub_group.sub_group.sub_group_task_list.task_id":
+          "board_column.board_column_task_list.sub_group.sub_group_task_list.task_id":
             board_column_group_or_sub_group_task_id,
         },
         {
           $pull: {
-            "board_column.$[b].board_column_task_list.$[s].sub_group.$[m].sub_group_task_list.$[t].task_id":
-              board_column_group_or_sub_group_task_id,
+            "board_column.$[].board_column_task_list.$[].sub_group.$[].sub_group_task_list":
+              { task_id: board_column_group_or_sub_group_task_id },
           },
         },
         {
@@ -1336,7 +1337,6 @@ const deleteBoardColumnTask = async (req, res) => {
             { "b._id": board_id },
             { "s._id": board_column_group_id },
             { "m._id": board_column_sub_group_id },
-            { "t.task_id": board_column_group_or_sub_group_task_id },
           ],
         }
       );
@@ -1364,9 +1364,10 @@ const deleteBoardColumnTask = async (req, res) => {
         {
           _id: board_id,
           user_id: user_id,
+          "board_column._id": column_id,
           "board_column.board_column_task_list.group_id": board_column_group_id,
-          // "board_column.board_column_task_list.group_task_list.task_id":
-          //   board_column_group_or_sub_group_task_id,
+          "board_column.board_column_task_list.group_task_list.task_id":
+            board_column_group_or_sub_group_task_id,
         },
         {
           $pull: {
@@ -1375,13 +1376,6 @@ const deleteBoardColumnTask = async (req, res) => {
             },
           },
         }
-        // {
-        //   arrayFilters: [
-        //     { "b._id": board_id },
-        //     { "s._id": board_column_group_id },
-        //     // { "t.task_id": board_column_group_or_sub_group_task_id },
-        //   ],
-        // }
       );
       if (!updatedBoardColumnGroupTaskList) {
         return res.status(500).send({
@@ -1397,8 +1391,7 @@ const deleteBoardColumnTask = async (req, res) => {
       console.log(error);
     }
   } else if (board_id && column_id && board_column_group_or_sub_group_task_id) {
-    console.log("board column task");
-    console.log(board_id + column_id + board_column_group_or_sub_group_task_id);
+    // console.log(board_id + column_id + board_column_group_or_sub_group_task_id);
     try {
       const updatedBoardColumnGroupTaskList = await Board.findOneAndUpdate(
         {
@@ -1433,28 +1426,23 @@ const deleteBoardColumnTask = async (req, res) => {
         {
           _id: board_id,
           user_id: user_id,
-          // "task_list.task_id": board_column_group_or_sub_group_task_id,
+          "task_list.task_id": board_column_group_or_sub_group_task_id,
         },
         {
           $pull: {
-            "task_list.$[].task_id": board_column_group_or_sub_group_task_id,
+            task_list: { task_id: board_column_group_or_sub_group_task_id },
           },
         }
-        // {
-        //   arrayFilters: [
-        //     { "t.task_id": board_column_group_or_sub_group_task_id },
-        //   ],
-        // }
       );
       if (!updatedBoardColumnGroupTaskList) {
         return res.status(500).send({
           errorMessage:
-            "Something went wrong. Task has not been deleted from board column.",
+            "Something went wrong. Task has not been deleted from board.",
         });
       } else {
         return res
           .status(200)
-          .send({ message: "Task has been deleted from board column" });
+          .send({ message: "Task has been deleted from board." });
       }
     } catch (error) {
       console.log(error);
