@@ -11,10 +11,11 @@ const TaskSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    // task: {
-    //   type: Boolean,
-    //   default: true,
-    // },
+    //newly added
+    task: {
+      type: Boolean,
+      default: true,
+    },
     user_id: {
       type: String,
     },

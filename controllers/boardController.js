@@ -227,8 +227,8 @@ const getGroupsAndTasks = async (req, res) => {
           JSON.stringify(group.sub_group)
         );
       }
-      // modifiedGroupObject.group = group.group; have to change it.
-      modifiedGroupObject.group = true;
+      modifiedGroupObject.group = group.group;
+      // modifiedGroupObject.group = true;
       groupList.push(modifiedGroupObject);
     });
   } catch (error) {
@@ -244,8 +244,8 @@ const getGroupsAndTasks = async (req, res) => {
       var modifiedTaskObject = {
         task_id: task._id,
         task_title: task.task_title,
-        // task: task.task,
-        task: true,
+        task: task.task,
+        // task: true,
         complete: false,
         user_id: task.user_id,
       };
